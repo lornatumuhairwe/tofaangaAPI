@@ -17,6 +17,22 @@ class User(db.Model):
         self.name = name
         self.birth_date = birth_date
 
+    def is_active(self):
+        """True, as all users are active"""
+        return True
+
+    def get_id(self):
+        """Return the email to satisfy Flask-Login's requirements"""
+        return self.id
+
+    def is_authenticated(self):
+        """Return True if the user is authenticated"""
+        return self.email
+
+    def is_anonymous(self):
+        """False, as anonymous users are not supported"""
+        return False
+
     def __repr__(self):
         return '<User %r>' % self.email
 

@@ -1,4 +1,5 @@
 import json
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from flask import request, jsonify, Blueprint, abort, session
 from flask.views import MethodView
 from my_app import db, app
@@ -7,11 +8,21 @@ from my_app.product.models import User, Bucketlist, BucketlistItem
 catalog = Blueprint('catalog', __name__)
 authentication = Blueprint('authentication', __name__)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def user_loader(user_email):
+    """Give user_id, return associated User object"""
+    return User.query.get(user_email)
+
 
 @catalog.route('/')
 @catalog.route('/home')
 def home():
     return "Welcome to the User Home"
+
 
 @authentication.route('/auth/register', methods=['POST'])
 def register():
@@ -29,6 +40,7 @@ def register():
         'password': user.password
     }})
 
+
 @authentication.route('/auth/login', methods=['POST', 'GET'])
 def login():
     email = request.form.get('email')
@@ -41,13 +53,14 @@ def login():
             'message': 'User not found'
         }
     elif user.password == password:
-        session['logged_in'] = True
+       # session['logged_in'] = True
         res = {
             'name': user.name,
             'email': user.email,
             'birthdate': user.birth_date,
             'password': user.password
         }
+        login_user(user)
     else:
         res = {
             'message': 'Password mismatch'
@@ -80,9 +93,14 @@ def reset_password():
     return jsonify(res)
 
 @authentication.route('/auth/logout', methods=['POST', 'GET'])
-#@login_required
+@login_required
 def logout():
-    pass
+    #user = current_user
+    logout_user()
+    res = {
+        'message': 'User logged'
+    }
+    return jsonify(res)
     #session.pop('logged_in', None)
     # email = request.form.get('email')
     # new_password = request.form.get('newpassword')
