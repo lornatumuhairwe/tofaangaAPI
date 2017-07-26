@@ -1,5 +1,6 @@
-from my_app import db
-
+from my_app import db, app
+import jwt
+import datetime
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -17,24 +18,45 @@ class User(db.Model):
         self.name = name
         self.birth_date = birth_date
 
-    def is_active(self):
-        """True, as all users are active"""
-        return True
-
-    def get_id(self):
-        """Return the email to satisfy Flask-Login's requirements"""
-        return self.id
-
-    def is_authenticated(self):
-        """Return True if the user is authenticated"""
-        return self.email
-
-    def is_anonymous(self):
-        """False, as anonymous users are not supported"""
-        return False
 
     def __repr__(self):
         return '<User %r>' % self.email
+
+    def encode_auth_token(self, user_id):
+        """Generate the Auth token, return: string"""
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=60),
+                'iat': datetime.datetime.utcnow(),
+                'sub': user_id
+            }
+
+            return jwt.encode(
+                payload,
+                app.config.get('SECRET_KEY'),
+                algorithm='HS256'
+            )
+        except Exception as e:
+            return e
+
+    @staticmethod
+    def decode_auth_token(auth_token):
+        """
+        Decodes the auth token
+        :param auth_token:
+        :return: integer|string
+        """
+        try:
+            payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'), algorithms='HS256')
+            print(payload)
+            return payload['sub']
+        except jwt.ExpiredSignatureError:
+            print('Signature expired. Please log in again')
+            return 'Signature expired. Please log in again'
+        except jwt.InvalidTokenError:
+            print('Invalid token. Please log in again')
+            return 'Invalid token. Please login again.'
+
 
 class Bucketlist(db.Model):
     __tablename__ = 'bucketlists'
