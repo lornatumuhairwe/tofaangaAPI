@@ -137,7 +137,8 @@ def add_or_view_bucketlist():
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int):
                 user = User.query.filter_by(id=resp).first()
-                item = Bucketlist.query.filter_by(name=name).first()
+                item = Bucketlist.query.filter(Bucketlist.owner_id==resp).filter_by(name=name).first()
+                #item = Bucketlist.query.filter_by(name=name).first()
                 if not item:
                     bucketlist = Bucketlist(name=name)
                     db.session.add(bucketlist)
@@ -169,7 +170,7 @@ def add_or_view_bucketlist():
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int):
                 res = {
-                    bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.all()
+                    bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.filter_by(owner_id=resp).all()
                 }
             else:
                 res = {
@@ -191,7 +192,7 @@ def view_update_delete_bucketlist(bucketlistID):
         if auth_token:
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int):
-                bucketlist = Bucketlist.query.filter_by(id=bucketlistID).first()
+                bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
                 if bucketlist:
                     bucketlist.name = newname
                     db.session.commit()
@@ -220,7 +221,7 @@ def view_update_delete_bucketlist(bucketlistID):
         if auth_token:
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int):
-                bucketlist = Bucketlist.query.filter_by(id=bucketlistID).first()
+                bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
                 if bucketlist:
                     res = {
                         bucketlist.id: bucketlist.name
@@ -246,7 +247,7 @@ def view_update_delete_bucketlist(bucketlistID):
         if auth_token:
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int):
-                bucketlist = Bucketlist.query.filter_by(id=bucketlistID).first()
+                bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
                 if bucketlist:
                     db.session.delete(bucketlist)
                     db.session.commit()
