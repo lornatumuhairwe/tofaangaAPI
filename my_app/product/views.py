@@ -12,12 +12,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
-# @login_manager.user_loader
-# def user_loader(user_email):
-#     """Give user_id, return associated User object"""
-#     return User.query.get(user_email)
-
-
 @catalog.route('/')
 @catalog.route('/home')
 def home():
@@ -56,45 +50,47 @@ def register():
 def login():
     email = request.form.get('email')
     password = request.form.get('password')
-    #user = User(email, password)
     user = User.query.filter_by(email=email).first()
     if not user:
         #abort(404)
         res = {
             'message': 'User not found',
-            'code': 404
+            'code': 401
         }
-    elif user.password == password:
-        auth_token = user.encode_auth_token(user.id)
-        if auth_token:
-            res = {
-                'status': 'success',
-                'message': 'successfully logged in. ',
-                'code': 200,
-                'auth_token': auth_token.decode()
-            }
+        return jsonify(res)
     else:
-        res = {
-            'message': 'Password mismatch',
-            'status': 'fail',
-            'way forward': 'Try again. ',
-            'code': 500
-}
+        if user.password == password:
+            auth_token = user.encode_auth_token(user.id)
+            if auth_token:
+                res = {
+                    'status': 'success',
+                    'message': 'successfully logged in. ',
+                    'code': 200,
+                    'auth_token': auth_token.decode()
+                }
+                return jsonify(res)
+        else:
+            res = {
+                'message': 'Password mismatch',
+                'status': 'fail',
+                'way forward': 'Try again. ',
+                'code': 401
+            }
 
-    return jsonify(res)
+            return jsonify(res)
 
 @authentication.route('/auth/reset-password', methods=['POST', 'GET'])
 def reset_password():
     email = request.form.get('email')
     new_password = request.form.get('newpassword')
     cnew_password = request.form.get('cnewpassword')
-    # user = User(email, password)
     user = User.query.filter_by(email=email).first()
     if not user:
         # abort(404)
         res = {
             'message': 'User not found'
         }
+        return jsonify(res)
     else:
         if new_password == cnew_password:
             user.password = new_password
@@ -105,20 +101,16 @@ def reset_password():
                 'birthdate': user.birth_date,
                 'password': user.password
             }
-    return jsonify(res)
+            return jsonify(res)
 
 @authentication.route('/auth/logout', methods=['POST', 'GET'])
-#@login_required
+
 def logout():
-    #user = current_user
-    #logout_user()
-    # res = {
-    #     'message': 'User logged'
-    # }
+
     auth_token = request.headers.get('Authorization')
     if auth_token:
         resp = User.decode_auth_token(auth_token)
-        print (type(resp))
+        #print (type(resp))
         if isinstance(resp, int):
         # if isinstance(resp, bytes):
             user = User.query.filter_by(id=resp).first()
