@@ -6,9 +6,12 @@ app.config.from_object('config')
 db = SQLAlchemy(app)
 
 
-from my_app.product.views import catalog, authentication, bucketlist
+from my_app.product.views import catalog, authentication
+from my_app.product.bucketlist_views import bucketlist
+from my_app.product.bucketlistitems_views import bucketlistitems
 app.register_blueprint(catalog)
 app.register_blueprint(authentication)
 app.register_blueprint(bucketlist)
+app.register_blueprint(bucketlistitems)
 
 db.create_all()
