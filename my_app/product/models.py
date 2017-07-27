@@ -26,7 +26,7 @@ class User(db.Model):
         """Generate the Auth token, return: string"""
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=60),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=1000),
                 'iat': datetime.datetime.utcnow(),
                 'sub': user_id
             }
@@ -48,7 +48,6 @@ class User(db.Model):
         """
         try:
             payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'), algorithms='HS256')
-            print(payload)
             return payload['sub']
         except jwt.ExpiredSignatureError:
             print('Signature expired. Please log in again')
@@ -66,13 +65,17 @@ class Bucketlist(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id')) #has to be similar to the table name that it's coming from
     items = db.relationship('BucketlistItem', backref='bucketlist', lazy='dynamic')
 
-    def __init__(self, name, owner_id, items):
+    # def __init__(self, name, owner_id):
+    #     self.name = name
+    #     self.owner = owner_id
+    #     print('Printing owner from models'+ str(self.owner))
+
+    def __init__(self, name):
         self.name = name
-        self.owner = owner_id
-        self.items = items
+        # print('Printing owner from models'+ str(self.owner))
 
     def __repr__(self):
-        return '<Bucketlist %r belongs to %r>' % (self.name, self.owner)
+        return '<Bucketlist %r belongs>' % (self.name)
 
 class BucketlistItem(db.Model):
     __tablename__ = 'BLitems'
