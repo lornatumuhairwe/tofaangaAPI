@@ -86,11 +86,10 @@ class BucketlistItem(db.Model):
     status = db.Column(db.String(20))
     bucketlist_id = db.Column(db.Integer, db.ForeignKey('bucketlists.id'))
 
-    def __init__(self, title, deadline, status, bucketlist_id):
+    def __init__(self, title, deadline, status):
         self.title = title
         self.deadline = deadline
         self.status = status
-        self.bucketlist = bucketlist_id
 
     def __repr__(self):
-        return '<Item %r belongs to %r bucketlist>' % (self.title, self.bucketlist)
+        return '<Item %r belongs to>' % (self.title)
