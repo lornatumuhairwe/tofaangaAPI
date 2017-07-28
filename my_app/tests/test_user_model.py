@@ -10,8 +10,11 @@ class TestUserModel(unittest.TestCase):
         db.session.close()
         db.drop_all()
         db.create_all()
+        user = User('testi', 'testpass')
+        db.session.add(user)
+        db.session.commit()
         self.app = app.test_client()
-        return app
+        return self.app
 
     def test_register_user(self):
         user = User('test', 'testpass')
@@ -19,29 +22,35 @@ class TestUserModel(unittest.TestCase):
         db.session.commit()
         users = User.query.all()
         assert user in users
-        print ("NUMBER OF ENTRIES:")
-        print (len(users))
+        # print ("NUMBER OF ENTRIES:")
+        # print (len(users))
 
     def login(self, email, password):
-        return self.app.post('/auth/login', data=json.dumps(dict(
+        return self.app.post('/auth/login', data=dict(
             email=email,
             password=password
-        )))
+        ))
 
     def test_login(self):
-        rv = self.login('test', 'testpass')
+        rv = self.login('testi', 'testpass')
         # print('------------*************----------------')
         # print (rv)
+        data = json.loads(rv.data.decode())
+        self.assertEqual('successfully logged in', data['message'])
         self.assertEqual(rv.status_code, 200)
+
+    def test_non_existent_user(self):
         rv = self.login('lt@gmail.com', 'testpasser')
         data = json.loads(rv.data.decode())
         assert 'User not found' in data['message']
         self.assertEqual(data['code'], 401)
-        # rv = self.login('test', 'testpasser')
-        # data = json.loads(rv.data.decode())
-        # self.assertEqual('Password mismatch', data['message'])
-        # self.assertEqual(data['code'], 401)
-        # self.assertEqual('fail', data['status'])
+
+    def test_incorrect_password(self):
+        rv = self.login('testi', 'testpasser')
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Password mismatch', data['message'])
+        self.assertEqual(data['code'], 401)
+        self.assertEqual('fail', data['status'])
 
     # def test_login_user_that_doesnt_exist(self):
     #     email = 'ltu@gmail.com'

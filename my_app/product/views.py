@@ -39,11 +39,13 @@ def register():
     return jsonify(res)
 
 
-@authentication.route('/auth/login', methods=['POST', 'GET'])
+@authentication.route('/auth/login', methods=['POST'])
 def login():
     email = request.form.get('email')
+    print (type(email))
     password = request.form.get('password')
     user = User.query.filter_by(email=email).first()
+    #print (user.email)
     if not user:
         #abort(404)
         res = {
@@ -57,7 +59,7 @@ def login():
             if auth_token:
                 res = {
                     'status': 'success',
-                    'message': 'successfully logged in. ',
+                    'message': 'successfully logged in',
                     'code': 200,
                     'auth_token': auth_token.decode()
                 }
