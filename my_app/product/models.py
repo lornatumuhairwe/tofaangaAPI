@@ -50,10 +50,8 @@ class User(db.Model):
             payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'), algorithms='HS256')
             return payload['sub']
         except jwt.ExpiredSignatureError:
-            print('Signature expired. Please log in again')
             return 'Signature expired. Please log in again'
         except jwt.InvalidTokenError:
-            print('Invalid token. Please log in again')
             return 'Invalid token. Please login again.'
 
 
@@ -65,14 +63,8 @@ class Bucketlist(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id')) #has to be similar to the table name that it's coming from
     items = db.relationship('BucketlistItem', backref='bucketlist', lazy='dynamic')
 
-    # def __init__(self, name, owner_id):
-    #     self.name = name
-    #     self.owner = owner_id
-    #     print('Printing owner from models'+ str(self.owner))
-
     def __init__(self, name):
         self.name = name
-        # print('Printing owner from models'+ str(self.owner))
 
     def __repr__(self):
         return '<Bucketlist %r belongs>' % (self.name)
