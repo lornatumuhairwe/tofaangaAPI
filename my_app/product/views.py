@@ -112,9 +112,8 @@ def logout():
     auth_token = request.headers.get('Authorization')
     if auth_token:
         resp = User.decode_auth_token(auth_token)
-        #print (type(resp))
         if isinstance(resp, int):
-        # if isinstance(resp, bytes):
+            #if resp = users ID, then the auth_token should be destroyed.
             user = User.query.filter_by(id=resp).first()
             res = {
                 'status': 'successfully logged out',
