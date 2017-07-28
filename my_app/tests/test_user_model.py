@@ -12,8 +12,9 @@ class TestUserModel(unittest.TestCase):
         user = User('testi', 'testpass')
         db.session.add(user)
         db.session.commit()
+        self.auth_token = user.encode_auth_token(user.id)
         self.app = app.test_client()
-        return self.app
+        return self.app, self.auth_token
 
     def test_whether_the_encode_auth_token_works(self):
         user = User.query.filter_by(email="testi").first()
@@ -79,6 +80,23 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual('Password mismatch', data['message'])
         self.assertEqual(data['code'], 401)
         self.assertEqual('fail', data['status'])
+
+    def logout(self, token):
+        return self.app.get('/auth/logout',
+                            headers=dict(
+                                Authorization=token
+                                ))
+
+    def test_logout_authenticated_users_only_else_return_error_message(self):
+        rv = self.logout(self.auth_token)
+        data = json.loads(rv.data.decode())
+        self.assertEqual('successfully logged out', data['status'])
+
+    def test_return_error_message_when_unauthenticated_user_accesses_logout_route(self):
+        rv = self.logout('')
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Token not found, Login to get one', data['message'])
+
 
 if __name__=='__main__':
     unittest.main()
