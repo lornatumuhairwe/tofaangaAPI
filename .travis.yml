@@ -5,4 +5,4 @@ python:
 # command to install dependencies
 install: "python -m pip install -r requirements.txt"
 # command to run tests
-script: PYTHONPATH='.' python -m unittest
+script: python -m unittest my_app/tests
