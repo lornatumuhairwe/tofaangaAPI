@@ -6,6 +6,7 @@ from my_app.product.models import User, Bucketlist, BucketlistItem
 catalog = Blueprint('catalog', __name__)
 authentication = Blueprint('authentication', __name__)
 
+
 @catalog.route('/')
 @catalog.route('/home')
 def home():
@@ -18,18 +19,25 @@ def register():
     birth_date = request.form.get('birthdate')
     password = request.form.get('password')
     user = User.query.filter_by(email=email).first()
-    if not user:
+    if not email or not password:
+        res = {
+            'message': 'Supply username and password'
+        }
+
+    elif not user:
         user = User(email, password, name, birth_date)
         db.session.add(user)
         db.session.commit()
         auth_token = user.encode_auth_token(user.id)
-        res = {user.id: {
+        res = {
+            'user id': user.id,
             'name': user.name,
             'email': user.email,
             'birthdate': user.birth_date,
             'password': user.password,
-            'auth_token': auth_token.decode()
-        }}
+            'auth_token': auth_token.decode(),
+            'message': 'Registration Successful'
+        }
 
     else:
         res = {
@@ -42,7 +50,6 @@ def register():
 @authentication.route('/auth/login', methods=['POST'])
 def login():
     email = request.form.get('email')
-    print (type(email))
     password = request.form.get('password')
     user = User.query.filter_by(email=email).first()
     #print (user.email)
