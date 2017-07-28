@@ -6,12 +6,14 @@ import unittest
 
 class TestUserModel(unittest.TestCase):
     def setUp(self):
-        app.config.from_object('config')
+        app.config.from_object('config.TestingConfigs')
         db.session.close()
         db.drop_all()
         db.create_all()
+        self.app = app.test_client()
+        return app
 
-    def test_lookup(self):
+    def test_register_user(self):
         user = User('test', 'testpass')
         db.session.add(user)
         db.session.commit()
@@ -20,9 +22,30 @@ class TestUserModel(unittest.TestCase):
         print ("NUMBER OF ENTRIES:")
         print (len(users))
 
-    def test_login_user_that_doesnt_exist(self):
-        email = 'ltu@gmail.com'
-        user = User.query.filter_by(email=email).first()
+    def login(self, email, password):
+        return self.app.post('/auth/login', data=json.dumps(dict(
+            email=email,
+            password=password
+        )))
+
+    def test_login(self):
+        rv = self.login('test', 'testpass')
+        # print('------------*************----------------')
+        # print (rv)
+        self.assertEqual(rv.status_code, 200)
+        rv = self.login('lt@gmail.com', 'testpasser')
+        data = json.loads(rv.data.decode())
+        assert 'User not found' in data['message']
+        self.assertEqual(data['code'], 401)
+        # rv = self.login('test', 'testpasser')
+        # data = json.loads(rv.data.decode())
+        # self.assertEqual('Password mismatch', data['message'])
+        # self.assertEqual(data['code'], 401)
+        # self.assertEqual('fail', data['status'])
+
+    # def test_login_user_that_doesnt_exist(self):
+    #     email = 'ltu@gmail.com'
+    #     user = User.query.filter_by(email=email).first()
 
 
 
