@@ -49,7 +49,7 @@ def add_or_view_bucketlist():
                     bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.filter_by(owner_id=resp).all()
                 }
             elif isinstance(resp, int) and search_name:
-                search_result = Bucketlist.query.filter(Bucketlist.name.like('%'+search_name+'%')).filter_by(owner_id=resp).all()
+                search_result = Bucketlist.query.filter(Bucketlist.name.match('%'+search_name+'%')).filter_by(owner_id=resp).all()
                 if search_result:
                     res = {
 
