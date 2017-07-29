@@ -40,14 +40,25 @@ def add_or_view_bucketlist():
         return jsonify(res)
 
     if request.method == 'GET':
-        # name = request.form.get('name')
+        search_name = request.args.get('q', '') #http://localhost:5000/bucketlists/?q=Oceania, implements this kind of search
         auth_token = request.headers.get('Authorization')
         if auth_token:
             resp = User.decode_auth_token(auth_token)
-            if isinstance(resp, int):
+            if isinstance(resp, int) and not search_name:
                 res = {
                     bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.filter_by(owner_id=resp).all()
                 }
+            elif isinstance(resp, int) and search_name:
+                search_result = Bucketlist.query.filter(Bucketlist.name.like('%'+search_name+'%')).filter_by(owner_id=resp).all()
+                if search_result:
+                    res = {
+
+                        bucketlist.id: bucketlist.name for bucketlist in search_result
+                        }
+                else:
+                    res = {
+                        'message': 'Bucketlist not found'
+                    }
             else:
                 res = {
                     'status': 'fail',
@@ -145,3 +156,13 @@ def view_update_delete_bucketlist(bucketlistID):
                 'message': 'Token not found, Login to get one'
             }
         return jsonify(res)
+
+
+# @bucketlist.route('/bucketlists/?q', methods=['GET'])
+# def search_for_bucketlist_by_name():
+#     search_name = request.args.get('q', '')
+#     res = {
+#         'name_for_search': search_name
+#     }
+#
+#     return jsonify(res)
