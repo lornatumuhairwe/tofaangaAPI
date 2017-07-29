@@ -41,10 +41,16 @@ def add_or_view_bucketlist():
 
     if request.method == 'GET':
         search_name = request.args.get('q', '') #http://localhost:5000/bucketlists/?q=Oceania, implements this kind of search
+        limit = request.args.get('limit', '')
         auth_token = request.headers.get('Authorization')
         if auth_token:
             resp = User.decode_auth_token(auth_token)
-            if isinstance(resp, int) and not search_name:
+            if isinstance(resp, int) and limit:
+                limit_result = Bucketlist.query.filter_by(owner_id=resp).paginate(page=1, per_page=int(limit)).items
+                res = {
+                    bucketlist.id: bucketlist.name for bucketlist in limit_result
+                }
+            elif isinstance(resp, int) and not search_name:
                 res = {
                     bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.filter_by(owner_id=resp).all()
                 }
@@ -158,7 +164,7 @@ def view_update_delete_bucketlist(bucketlistID):
         return jsonify(res)
 
 
-# @bucketlist.route('/bucketlists/?q', methods=['GET'])
+# @bucketlist.route('/bucketlists', methods=['GET'])
 # def search_for_bucketlist_by_name():
 #     search_name = request.args.get('q', '')
 #     res = {
