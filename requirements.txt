@@ -7,6 +7,7 @@ click==6.7
 coverage==4.4.1
 decorator==4.0.11
 defusedxml==0.5.0
+flasgger==0.6.6
 Flask==0.12.2
 Flask-Babel==0.11.2
 Flask-Login==0.4.0
@@ -23,8 +24,10 @@ gunicorn==19.7.1
 idna==2.5
 itsdangerous==0.24
 Jinja2==2.9.6
+jsonschema==2.6.0
 Mako==1.0.7
 MarkupSafe==1.0
+mistune==0.7.4
 pbr==3.1.1
 psycopg2==2.7.1
 PyJWT==1.5.2
@@ -32,6 +35,7 @@ python-dateutil==2.6.1
 python-editor==1.0.3
 python3-openid==3.1.0
 pytz==2017.2
+PyYAML==3.12
 requests==2.18.1
 six==1.10.0
 SQLAlchemy==1.1.11
