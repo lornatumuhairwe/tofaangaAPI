@@ -3,7 +3,7 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 from my_app import app, db
 app.config.from_object('config.DevelopmentConfigs')
-app.config.from_object('configTest')
+app.config.from_object('config.TestingConfigs')
 
 
 migrate = Migrate(app, db)
