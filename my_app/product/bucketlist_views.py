@@ -21,7 +21,7 @@ def add_or_view_bucketlist():
                     user.bucketlists.append(bucketlist) # FK relationship
                     db.session.commit()
                     res = {
-                        'buckelist': bucketlist.name
+                        'bucketlist': bucketlist.name
                     }
                 else:
                     res = {
@@ -92,7 +92,8 @@ def view_update_delete_bucketlist(bucketlistID):
                     bucketlist.name = newname
                     db.session.commit()
                     res = {
-                        bucketlist.id: bucketlist.name
+                        bucketlist.id: bucketlist.name,
+                        'message': 'Bucketlist updated successfully'
                     }
                 else:
                     res = {
