@@ -191,7 +191,12 @@ def reset_password():
                 'birthdate': user.birth_date,
                 'password': user.password
             }
-            return jsonify(res)
+        else:
+            res = {
+                'message': 'Password mismatch'
+            }
+
+        return jsonify(res)
 
 @authentication.route('/auth/logout', methods=['POST', 'GET'])
 
