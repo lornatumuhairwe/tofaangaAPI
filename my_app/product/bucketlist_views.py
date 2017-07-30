@@ -78,7 +78,9 @@ def add_or_view_bucketlist():
         return jsonify(res)
 
 @bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['PUT','DELETE', 'GET'])
+
 def view_update_delete_bucketlist(bucketlistID):
+
     if request.method=='PUT':
         newname = request.form.get('newname')
         auth_token = request.headers.get('Authorization')
@@ -162,13 +164,3 @@ def view_update_delete_bucketlist(bucketlistID):
                 'message': 'Token not found, Login to get one'
             }
         return jsonify(res)
-
-
-# @bucketlist.route('/bucketlists', methods=['GET'])
-# def search_for_bucketlist_by_name():
-#     search_name = request.args.get('q', '')
-#     res = {
-#         'name_for_search': search_name
-#     }
-#
-#     return jsonify(res)

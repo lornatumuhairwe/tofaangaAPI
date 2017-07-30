@@ -1,11 +1,11 @@
 import json
 from flask import request, jsonify, Blueprint, abort, session, make_response
 from my_app import db, app
-from my_app.product.models import User, Bucketlist, BucketlistItem
+from my_app.product.models import User
 
+# swagger = Swagger(app)
 catalog = Blueprint('catalog', __name__)
 authentication = Blueprint('authentication', __name__)
-
 
 @catalog.route('/')
 @catalog.route('/home')
@@ -14,6 +14,37 @@ def home():
 
 @authentication.route('/auth/register', methods=['POST'])
 def register():
+    """ Registration of a new user
+            ---
+            tags:
+              - "Authentication operations"
+            parameters:
+              - in: "body"
+                name: "Signup"
+                description: "Email, password, name, birth_date submitted"
+                required: true
+                schema:
+                  type: "object"
+                  required:
+                  - "email"
+                  - "password"
+                  properties:
+                    email:
+                      type: "string"
+                    password:
+                      type: "string"
+                    name:
+                      type: "string"
+                    date_of_birth:
+                      type: "date"
+            responses:
+                200:
+                  description: "Registration Successful"
+                400:
+                  description: "Registration Failed"
+                401:
+                  description: " email exists in the database"
+           """
     name = request.form.get('name')
     email = request.form.get('email')
     birth_date = request.form.get('birthdate')
@@ -49,6 +80,33 @@ def register():
 
 @authentication.route('/auth/login', methods=['POST'])
 def login():
+    """ Login of existing user
+         ---
+         tags:
+           - "Authentication operations"
+         parameters:
+           - in: "body"
+             name: "Login"
+             description: "Email and password submitted"
+             required: true
+             schema:
+               type: "object"
+               required:
+               - "email"
+               - "password"
+               properties:
+                 email:
+                   type: "string"
+                 password:
+                   type: "string"
+         responses:
+             200:
+               description: " Successfully logged in"
+             400:
+               description: "Not allowed"
+             401:
+               description: " Incorrect email or password"
+        """
     email = request.form.get('email')
     password = request.form.get('password')
     user = User.query.filter_by(email=email).first()
@@ -81,8 +139,38 @@ def login():
 
             return jsonify(res)
 
-@authentication.route('/auth/reset-password', methods=['POST', 'GET'])
+@authentication.route('/auth/reset-password', methods=['POST'])
 def reset_password():
+    """ Reset password of an existing user
+                ---
+                tags:
+                  - "Authentication operations"
+                parameters:
+                  - in: "body"
+                    name: "Password reset"
+                    description: "User wishes to reset his/her password"
+                    required: true
+                    schema:
+                      type: "object"
+                      required:
+                      - "email"
+                      - "newpassword"
+                      - "cnewpassword"
+                      properties:
+                        email:
+                          type: "string"
+                        newpassword:
+                          type: "string"
+                        cnewpassword:
+                          type: "string"
+                responses:
+                    200:
+                      description: "Reset of password successful"
+                    400:
+                      description: "Reset of password Failed"
+                    401:
+                      description: "Reset of password Failed, try again"
+               """
     email = request.form.get('email')
     new_password = request.form.get('newpassword')
     cnew_password = request.form.get('cnewpassword')
@@ -108,7 +196,6 @@ def reset_password():
 @authentication.route('/auth/logout', methods=['POST', 'GET'])
 
 def logout():
-
     auth_token = request.headers.get('Authorization')
     if auth_token:
         resp = User.decode_auth_token(auth_token)
