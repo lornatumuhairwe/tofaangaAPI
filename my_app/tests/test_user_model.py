@@ -87,13 +87,16 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual('fail', data['status'])
 
     def logout(self, token):
-        return self.app.get('/auth/logout',
-                            headers=dict(
-                                Authorization=token
-                                ))
+        return self.app.post('/auth/logout',
+                            headers=dict(Authorization=token))
 
     def test_logout_authenticated_users_only_else_return_error_message(self):
-        rv = self.logout(self.auth_token)
+        user = User('testi1', 'testpass')
+        db.session.add(user)
+        db.session.commit()
+        auth_token = user.encode_auth_token(user.id)
+        rv = self.logout(auth_token)
+        self.assertTrue(auth_token)
         data = json.loads(rv.data.decode())
         self.assertEqual('successfully logged out', data['status'])
 
