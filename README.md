@@ -4,6 +4,7 @@
 [![Test Coverage](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI/badges/coverage.svg)](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI/coverage)
 [![Code Climate](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI/badges/gpa.svg)](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI)
 [![Issue Count](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI/badges/issue_count.svg)](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6cec6f639a5048748b9d0e3054645054)](https://www.codacy.com/app/lornatumuhairwe/tofaangaAPI?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=lornatumuhairwe/tofaangaAPI&amp;utm_campaign=Badge_Grade)
 
 The name of this application is based on a Luganda word TOFAANGA' that means DON'T DIE BEFORE ...
 It is a simple bucketlist application that helps users to track their goals by allowing a logged in user to create
