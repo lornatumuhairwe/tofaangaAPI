@@ -1,0 +1,6 @@
+[run]
+source=
+    ./my_app
+omit=
+    ./venv/*
+    ./my_app/tests/*
