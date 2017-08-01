@@ -149,6 +149,7 @@ def view_update_delete_bucketlist(bucketlistID):
 
                            """
     if request.method=='PUT':
+        #res = {'message': 'Update Function!'}
         newname = request.form.get('newname')
         auth_token = request.headers.get('Authorization')
         if auth_token:
@@ -159,7 +160,7 @@ def view_update_delete_bucketlist(bucketlistID):
                     bucketlist.name = newname
                     db.session.commit()
                     res = {
-                        bucketlist.id: bucketlist.name,
+                        #bucketlist.id: bucketlist.name,
                         'message': 'Bucketlist updated successfully'
                     }
                 else:
