@@ -2,6 +2,7 @@
 
 [![Codeship Status for lornatumuhairwe/tofaangaAPI](https://app.codeship.com/projects/a14e2a10-58c4-0135-5a0a-5ec3d4c61cb2/status?branch=master)](https://app.codeship.com/projects/236419)
 [![Coverage Status](https://coveralls.io/repos/github/lornatumuhairwe/tofaangaAPI/badge.svg?branch=master)](https://coveralls.io/github/lornatumuhairwe/tofaangaAPI?branch=master)
+[![Code Health](https://landscape.io/github/lornatumuhairwe/tofaangaAPI/master/landscape.svg?style=flat)](https://landscape.io/github/lornatumuhairwe/tofaangaAPI/master)
 [![Code Climate](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI/badges/gpa.svg)](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI)
 [![Issue Count](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI/badges/issue_count.svg)](https://codeclimate.com/github/lornatumuhairwe/tofaangaAPI)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/6cec6f639a5048748b9d0e3054645054)](https://www.codacy.com/app/lornatumuhairwe/tofaangaAPI?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=lornatumuhairwe/tofaangaAPI&amp;utm_campaign=Badge_Grade)
