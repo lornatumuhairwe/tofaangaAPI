@@ -10,7 +10,8 @@ class TestDevConfig(unittest.TestCase):
 
     def test_app_in_development(self):
         self.assertTrue(app.config['DEBUG'])
-        self.assertTrue(app.config['SQLALCHEMY_DATABASE_URI'] == 'postgresql://lorna:enambi@localhost/Tofaanga')
+        #self.assertTrue(app.config['SQLALCHEMY_DATABASE_URI'] == 'postgresql://lorna:enambi@localhost/Tofaanga')
+        self.assertTrue(app.config['SQLALCHEMY_DATABASE_URI'] == 'postgresql://localhost/Tofaanga')
         self.assertTrue(app.config['SECRET_KEY'] == 'I love Flask') #replace is with ==, test is wierd
 
 class TestTestingConfig(unittest.TestCase):
@@ -20,7 +21,8 @@ class TestTestingConfig(unittest.TestCase):
 
     def test_app_in_testing(self):
         self.assertTrue(app.config['DEBUG'])
-        self.assertTrue(app.config['SQLALCHEMY_DATABASE_URI'] == 'postgresql://lorna:enambi@localhost/TofaangaTest')
+        #self.assertTrue(app.config['SQLALCHEMY_DATABASE_URI'] == 'postgresql://lorna:enambi@localhost/TofaangaTest')
+        self.assertTrue(app.config['SQLALCHEMY_DATABASE_URI'] == 'postgresql://localhost/TofaangaTest')
         self.assertTrue(app.config['SECRET_KEY'] == 'I love Flask') #replace is with ==, test is wierd
 
 class TestProductionConfig(unittest.TestCase):
