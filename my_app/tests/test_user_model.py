@@ -159,38 +159,40 @@ class TestUserModel(unittest.TestCase):
         data = json.loads(rv.data.decode())
         self.assertTrue(data['1'])
 
-    # def test_name_based_search_of_bucketlist(self, token):
-    #     with app.test_client() as c:
-    #         rv = c.get('/bucketlists/?q=Cities')
-    #         assert flask.request.args['q'] == 'Cities'
-    #         assert flask.request.path == '/bucketlists/'
-    #         data = json.loads(rv.data.decode())
-    #         print(data)
+    def test_get_existing_bucketlist(self):
+        rv = self.app.get('/bucketlists/1', headers=dict(
+            Authorization=self.auth_token
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertTrue(data['1'])
 
-    # def update_bucketlist(self, newname, token):
-    #     return self.app.post('/bucketlists/<int:bucketlistID>', data=dict(
-    #         newname=newname), headers=dict(
-    #         Authorization=token
-    #     ))
+    # def test_name_based_search_of_bucketlist(self, token):
+    # with app.test_client() as c:
+    #     rv = c.get('/bucketlists/?q=Cities')
+    #     assert flask.request.args['q'] == 'Cities'
+    #     assert flask.request.path == '/bucketlists/'
+    #     data = json.loads(rv.data.decode())
+    #     print(data)
+
     def test_user_can_update_bucketlist(self):
         bucketlist = Bucketlist(name='Career')
         db.session.add(bucketlist)
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
-        print(bucketlist)
         bucketlistID = bucketlist.id
-        print(bucketlistID)
-        x = "2"
-        # rv = self.app.put('/bucketlists/2', data=dict(
-        #         newname='Work'), headers=dict(
-        #         Authorization=self.auth_token
-        #     ))
-        # print(rv)
-        # data = json.loads(rv.data.decode())
-        # print(data['2'])
-        # rv = self.update_bucketlist('Work', self.auth_token)
-        # data = json.loads(rv.data.decode())
-        # self.assertEqual(data['2'], 'Work')
+        rv = self.app.put('/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')),headers=dict(Authorization=self.auth_token))
+        data = json.loads(rv.data.decode())
+        self.assertEqual(data['message'], 'Bucketlist updated successfully')
+
+    def test_user_can_delete_bucketlist(self):
+        bucketlist = Bucketlist(name='Visit')
+        db.session.add(bucketlist)
+        self.user.bucketlists.append(bucketlist)  # FK relationship
+        db.session.commit()
+        bucketlistID = bucketlist.id
+        rv = self.app.delete('/bucketlists/'+ str(bucketlistID), headers=dict(Authorization=self.auth_token))
+        data = json.loads(rv.data.decode())
+        self.assertEqual(data['message'], 'Bucketlist deleted successfully')
 
 
 if __name__ == '__main__':
