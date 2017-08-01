@@ -1,6 +1,6 @@
-import json
+import json, flask
 from my_app import db, app
-from my_app.product.models import User
+from my_app.product.models import User, Bucketlist
 import unittest
 
 class TestUserModel(unittest.TestCase):
@@ -12,9 +12,14 @@ class TestUserModel(unittest.TestCase):
         user = User('testi', 'testpass')
         db.session.add(user)
         db.session.commit()
+        bucketlist = Bucketlist(name='Cities')
+        db.session.add(bucketlist)
+        user.bucketlists.append(bucketlist)  # FK relationship
+        db.session.commit()
         self.auth_token = user.encode_auth_token(user.id)
         self.app = app.test_client()
-        return self.app, self.auth_token
+        self.user = user
+        return self.app, self.auth_token, self.user
 
     def test_whether_the_encode_auth_token_works(self):
         user = User.query.filter_by(email="testi").first()
@@ -82,13 +87,16 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual('fail', data['status'])
 
     def logout(self, token):
-        return self.app.get('/auth/logout',
-                            headers=dict(
-                                Authorization=token
-                                ))
+        return self.app.post('/auth/logout',
+                            headers=dict(Authorization=token))
 
     def test_logout_authenticated_users_only_else_return_error_message(self):
-        rv = self.logout(self.auth_token)
+        user = User('testi1', 'testpass')
+        db.session.add(user)
+        db.session.commit()
+        auth_token = user.encode_auth_token(user.id)
+        rv = self.logout(auth_token)
+        self.assertTrue(auth_token)
         data = json.loads(rv.data.decode())
         self.assertEqual('successfully logged out', data['status'])
 
@@ -97,6 +105,93 @@ class TestUserModel(unittest.TestCase):
         data = json.loads(rv.data.decode())
         self.assertEqual('Token not found, Login to get one', data['message'])
 
+    def create_bucketlist(self, bucketlist_name, token):
+        return self.app.post('/bucketlists/', data=dict(
+            name=bucketlist_name), headers=dict(Authorization=token))
 
-if __name__=='__main__':
+    def test_user_can_add_bucketlist(self):
+        rv = self.create_bucketlist('Oceans', self.auth_token)
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Oceans',data['bucketlist'])
+
+    def test_user_cannot_add_already_existing_bucketlist(self):
+        rv = self.create_bucketlist('Cities', self.auth_token)
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Bucketlist exists',data['message'])
+
+    def test_unauthenticated_user_cannot_add_bucketlist(self):
+        rv = self.create_bucketlist('Cities', None)
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Invalid token, Login again',data['message'])
+
+    def view_all_bucketlists(self, token):
+        return self.app.get('/bucketlists/', headers=dict(
+            Authorization=token
+        ))
+
+    def test_user_can_view_bucketlists(self):
+        rv = self.view_all_bucketlists(self.auth_token)
+        data = json.loads(rv.data.decode())
+        self.assertEqual(data['1'], 'Cities')
+
+    def test_unauthenticated_user_cannot_view_bucketlist(self):
+        rv = self.view_all_bucketlists(None)
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Invalid token, Login again',data['message'])
+
+    with app.test_client() as c:
+        rv = c.get('/bucketlists/?q=Cities')
+        assert flask.request.args['q'] == 'Cities'
+        assert flask.request.path == '/bucketlists/'
+        data = json.loads(rv.data.decode())
+
+    def test_pagination(self):
+        rv = self.app.get('/bucketlists/?limit=2', headers=dict(
+            Authorization=self.auth_token
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertEqual(1, len(data))
+
+    def test_name_based_search_of_bucketlist(self):
+        rv = self.app.get('/bucketlists/?q=Cities', headers=dict(
+            Authorization=self.auth_token
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertTrue(data['1'])
+
+    # def test_name_based_search_of_bucketlist(self, token):
+    #     with app.test_client() as c:
+    #         rv = c.get('/bucketlists/?q=Cities')
+    #         assert flask.request.args['q'] == 'Cities'
+    #         assert flask.request.path == '/bucketlists/'
+    #         data = json.loads(rv.data.decode())
+    #         print(data)
+
+    # def update_bucketlist(self, newname, token):
+    #     return self.app.post('/bucketlists/<int:bucketlistID>', data=dict(
+    #         newname=newname), headers=dict(
+    #         Authorization=token
+    #     ))
+    def test_user_can_update_bucketlist(self):
+        bucketlist = Bucketlist(name='Career')
+        db.session.add(bucketlist)
+        self.user.bucketlists.append(bucketlist)  # FK relationship
+        db.session.commit()
+        print(bucketlist)
+        bucketlistID = bucketlist.id
+        print(bucketlistID)
+        x = "2"
+        # rv = self.app.put('/bucketlists/2', data=dict(
+        #         newname='Work'), headers=dict(
+        #         Authorization=self.auth_token
+        #     ))
+        # print(rv)
+        # data = json.loads(rv.data.decode())
+        # print(data['2'])
+        # rv = self.update_bucketlist('Work', self.auth_token)
+        # data = json.loads(rv.data.decode())
+        # self.assertEqual(data['2'], 'Work')
+
+
+if __name__ == '__main__':
     unittest.main()

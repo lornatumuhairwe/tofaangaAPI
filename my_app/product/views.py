@@ -1,7 +1,7 @@
 import json
 from flask import request, jsonify, Blueprint, abort, session, make_response
 from my_app import db, app
-from my_app.product.models import User
+from my_app.product.models import User, BlacklistToken
 
 # swagger = Swagger(app)
 catalog = Blueprint('catalog', __name__)
@@ -198,22 +198,53 @@ def reset_password():
 
         return jsonify(res)
 
-@authentication.route('/auth/logout', methods=['POST', 'GET'])
-
+@authentication.route('/auth/logout', methods=['POST'])
 def logout():
+    """ Logout of user
+                    ---
+                    tags:
+                      - "Authentication operations"
+                    parameters:
+                      - in: "body"
+                        name: "Logout"
+                        description: "User wishes to logout of current session"
+                        required: true
+                        schema:
+                          type: "object"
+                          required:
+                          - "Authentication token"
+                          properties:
+                            auth_token:
+                              type: "string"
+                    responses:
+                        200:
+                          description: "User logged out successful"
+                        400:
+                          description: "User logged out Failed"
+                        401:
+                          description: "You need to login to access this function
+                   """
     auth_token = request.headers.get('Authorization')
     if auth_token:
         resp = User.decode_auth_token(auth_token)
         if isinstance(resp, int):
             #if resp = users ID, then the auth_token should be destroyed.
-            user = User.query.filter_by(id=resp).first()
-            res = {
-                'status': 'successfully logged out',
-                'data': {
-                    'user_id': user.id,
-                    'email': user.email
+            blacklist_token = BlacklistToken(token=auth_token)
+            try:
+                db.session.add(blacklist_token)
+                db.session.commit()
+                user = User.query.filter_by(id=resp).first()
+                res = {
+                    'status': 'successfully logged out',
+                    'data': {
+                        'user_id': user.id,
+                        'email': user.email
+                    }}
+            except Exception as e:
+                res = {
+                    'status': 'fail',
+                    'message': e
                 }
-            }
         else:
             res = {
                 'status': 'fail',

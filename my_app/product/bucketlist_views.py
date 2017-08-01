@@ -6,6 +6,30 @@ bucketlist = Blueprint('bucketlist', __name__)
 
 @bucketlist.route('/bucketlists/', methods=['POST', 'GET'])
 def add_or_view_bucketlist():
+    """ Adding a bucketlist
+                ---
+                tags:
+                  - "Bucketlist operations"
+                parameters:
+                  - in: "body"
+                    name: "Add Buckelist"
+                    description: "User adds a bucketlist, the operation requires a user to be logged in"
+                    required: false
+                    schema:
+                      type: "object"
+                      required:
+                      - "name"
+                      properties:
+                        name:
+                          type: "string"
+                responses:
+                    200:
+                      description: "Bucketlist added successfully"
+                    400:
+                      description: "Bucketlist addition Failed"
+                    401:
+                      description: "PLease Login to use the application"
+               """
     if request.method=='POST':
         name = request.form.get('name')
         auth_token = request.headers.get('Authorization')
@@ -21,7 +45,7 @@ def add_or_view_bucketlist():
                     user.bucketlists.append(bucketlist) # FK relationship
                     db.session.commit()
                     res = {
-                        'buckelist': bucketlist.name
+                        'bucketlist': bucketlist.name
                     }
                 else:
                     res = {
@@ -39,6 +63,25 @@ def add_or_view_bucketlist():
             }
         return jsonify(res)
 
+    """ Viewing all bucketlists
+                ---
+                tags:
+                  - "Bucketlist operations"
+                parameters:
+                  - in: "body"
+                    name: "Add Buckelist"
+                    description: "User views all his/her bucketlists, the operation requires a user to be logged in"
+                    required: false
+                    schema:
+                      type: "object"
+                responses:
+                    200:
+                      description: "Bucketlist locaded successfully"
+                    400:
+                      description: "Bucketlist loading Failed"
+                    401:
+                      description: "PLease Login to use the application"
+               """
     if request.method == 'GET':
         search_name = request.args.get('q', '') #http://localhost:5000/bucketlists/?q=Oceania, implements this kind of search
         limit = request.args.get('limit', '')
@@ -80,7 +123,31 @@ def add_or_view_bucketlist():
 @bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['PUT','DELETE', 'GET'])
 
 def view_update_delete_bucketlist(bucketlistID):
+    """ Updating a bucketlist
+                            ---
+                            tags:
+                              - "Bucketlist operations"
+                            parameters:
+                              - in: "body"
+                                name: "Updating Buckelist"
+                                description: "User updates a bucketlist, the operation requires a user to be logged in"
+                                required: false
+                                schema:
+                                  type: "object"
+                                  required:
+                                  - "newname"
+                                  properties:
+                                    newname:
+                                      type: "string"
+                            responses:
+                                200:
+                                  description: "Bucketlist updated successfully"
+                                400:
+                                  description: "Bucketlist update Failed"
+                                401:
+                                  description: "PLease Login to use the application"
 
+                           """
     if request.method=='PUT':
         newname = request.form.get('newname')
         auth_token = request.headers.get('Authorization')
@@ -92,7 +159,8 @@ def view_update_delete_bucketlist(bucketlistID):
                     bucketlist.name = newname
                     db.session.commit()
                     res = {
-                        bucketlist.id: bucketlist.name
+                        bucketlist.id: bucketlist.name,
+                        'message': 'Bucketlist updated successfully'
                     }
                 else:
                     res = {
