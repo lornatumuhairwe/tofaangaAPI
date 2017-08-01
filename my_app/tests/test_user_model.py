@@ -143,24 +143,55 @@ class TestUserModel(unittest.TestCase):
         rv = c.get('/bucketlists/?q=Cities')
         assert flask.request.args['q'] == 'Cities'
         assert flask.request.path == '/bucketlists/'
-        # data = json.loads(rv.data.decode())
-        # assert data['1'] == 'Cities'
+        data = json.loads(rv.data.decode())
+
+    def test_pagination(self):
+        rv = self.app.get('/bucketlists/?limit=2', headers=dict(
+            Authorization=self.auth_token
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertEqual(1, len(data))
+
+    def test_name_based_search_of_bucketlist(self):
+        rv = self.app.get('/bucketlists/?q=Cities', headers=dict(
+            Authorization=self.auth_token
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertTrue(data['1'])
+
+    # def test_name_based_search_of_bucketlist(self, token):
+    #     with app.test_client() as c:
+    #         rv = c.get('/bucketlists/?q=Cities')
+    #         assert flask.request.args['q'] == 'Cities'
+    #         assert flask.request.path == '/bucketlists/'
+    #         data = json.loads(rv.data.decode())
+    #         print(data)
 
     # def update_bucketlist(self, newname, token):
     #     return self.app.post('/bucketlists/<int:bucketlistID>', data=dict(
     #         newname=newname), headers=dict(
     #         Authorization=token
     #     ))
-    # def test_user_can_update_bucketlist(self):
-    #     bucketlist = Bucketlist(name='Career')
-    #     db.session.add(bucketlist)
-    #     self.user.bucketlists.append(bucketlist)  # FK relationship
-    #     db.session.commit()
-    #     rv = self.update_bucketlist('Work', self.auth_token)
-    #     data = json.loads(rv.data.decode())
-    #     self.assertEqual(data['2'], 'Work')
+    def test_user_can_update_bucketlist(self):
+        bucketlist = Bucketlist(name='Career')
+        db.session.add(bucketlist)
+        self.user.bucketlists.append(bucketlist)  # FK relationship
+        db.session.commit()
+        print(bucketlist)
+        bucketlistID = bucketlist.id
+        print(bucketlistID)
+        x = "2"
+        # rv = self.app.put('/bucketlists/2', data=dict(
+        #         newname='Work'), headers=dict(
+        #         Authorization=self.auth_token
+        #     ))
+        # print(rv)
+        # data = json.loads(rv.data.decode())
+        # print(data['2'])
+        # rv = self.update_bucketlist('Work', self.auth_token)
+        # data = json.loads(rv.data.decode())
+        # self.assertEqual(data['2'], 'Work')
 
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     unittest.main()
