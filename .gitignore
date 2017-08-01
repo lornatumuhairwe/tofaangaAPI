@@ -3,3 +3,5 @@
 migrations/
 venv/
 __pycache__/
+coverage.xml
+.coverage
