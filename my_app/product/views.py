@@ -189,7 +189,8 @@ def reset_password():
                 'name': user.name,
                 'email': user.email,
                 'birthdate': user.birth_date,
-                'password': user.password
+                'password': user.password,
+                'message': 'Password reset successful'
             }
         else:
             res = {
