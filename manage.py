@@ -1,4 +1,3 @@
-import os
 from unittest import TestLoader, TextTestRunner
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand

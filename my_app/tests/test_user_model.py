@@ -3,6 +3,7 @@ from my_app import db, app
 from my_app.product.models import User, Bucketlist
 import unittest
 
+
 class TestUserModel(unittest.TestCase):
     def setUp(self):
         app.config.from_object('config.TestingConfigs')
@@ -25,7 +26,7 @@ class TestUserModel(unittest.TestCase):
 
     def test_whether_the_encode_auth_token_works(self):
         user = User.query.filter_by(email="testi").first()
-        auth_token = user.encode_auth_token(user.id) # encoding itself returns bytes
+        auth_token = user.encode_auth_token(user.id)  # encoding itself returns bytes
         self.assertTrue(isinstance(auth_token, bytes))
 
     def test_decode_auth_token(self):
@@ -206,12 +207,14 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.put('/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')),headers=dict(Authorization=self.auth_token))
+        rv = self.app.put('/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')),
+                          headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist updated successfully')
 
     def test_authenticated_user_cannot_update_bucketlist_that_doesnt_exist(self):
-        rv = self.app.put('/bucketlists/'+ str(200), data=json.dumps(dict(newname='Work')),headers=dict(Authorization=self.auth_token))
+        rv = self.app.put('/bucketlists/'+ str(200), data=json.dumps(dict(newname='Work')),
+                          headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist doesnt exist')
 
@@ -221,7 +224,8 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.put('/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')),headers=dict(Authorization=None))
+        rv = self.app.put('/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')),
+                          headers=dict(Authorization=None))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Invalid token, Login again')
 
@@ -282,7 +286,7 @@ class TestUserModel(unittest.TestCase):
             status='Incomplete'
         )), headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
-        #print(data['message'])
+        # print(data['message'])
         self.assertEqual(data['message'], 'Bucketlist item added successfully')
 
     def test_authenticated_user_cannot_add_item_to_bucketlist_that_doesnt_exist(self):
@@ -292,7 +296,7 @@ class TestUserModel(unittest.TestCase):
             status='Incomplete'
         )), headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
-        #print(data['message'])
+        # print(data['message'])
         self.assertEqual(data['message'], 'Bucketlist doesnt exist')
 
     def test_unauthenticated_user_cannot_add_item_to_bucketlist(self):
@@ -307,7 +311,7 @@ class TestUserModel(unittest.TestCase):
             status='Incomplete'
         )), headers=dict(Authorization=None))
         data = json.loads(rv.data.decode())
-        #print(data['message'])
+        # print(data['message'])
         self.assertEqual(data['message'], 'Invalid token, Login again')
 
     def test_user_cannot_add_item_to_bucketlist_without_token(self):
@@ -322,7 +326,7 @@ class TestUserModel(unittest.TestCase):
             status='Incomplete'
         )))
         data = json.loads(rv.data.decode())
-        #print(data['message'])
+        # print(data['message'])
         self.assertEqual(data['message'], 'Token not found, Login to get one')
 
     def test_user_can_update_item_in_bucketlist(self):
@@ -387,7 +391,8 @@ class TestUserModel(unittest.TestCase):
             deadline='13/11/1994',
             status='Incomplete'
         )), headers=dict(Authorization=self.auth_token))
-        rv = self.app.delete('/bucketlists/' + str(self.bucketlistID) + '/items/1', headers=dict(Authorization=self.auth_token))
+        rv = self.app.delete('/bucketlists/' + str(self.bucketlistID) + '/items/1',
+                             headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist item deleted successfully')
 

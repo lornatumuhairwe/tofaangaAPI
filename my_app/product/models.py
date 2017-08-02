@@ -2,6 +2,7 @@ from my_app import db, app
 import jwt
 import datetime
 
+
 class User(db.Model):
     __tablename__ = 'users'
 
@@ -17,7 +18,6 @@ class User(db.Model):
         self.password = password
         self.name = name
         self.birth_date = birth_date
-
 
     def __repr__(self):
         return '<User %r>' % self.email
@@ -72,6 +72,7 @@ class Bucketlist(db.Model):
 
     def __repr__(self):
         return '<Bucketlist %r belongs>' % (self.name)
+
 
 class BucketlistItem(db.Model):
     __tablename__ = 'BLitems'

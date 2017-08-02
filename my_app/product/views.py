@@ -1,16 +1,17 @@
-import json
-from flask import request, jsonify, Blueprint, abort, session, make_response
-from my_app import db, app
+from flask import request, jsonify, Blueprint
+from my_app import db
 from my_app.product.models import User, BlacklistToken
 
 # swagger = Swagger(app)
 catalog = Blueprint('catalog', __name__)
 authentication = Blueprint('authentication', __name__)
 
+
 @catalog.route('/')
 @catalog.route('/home')
 def home():
     return "Welcome to the User Home"
+
 
 @authentication.route('/auth/register', methods=['POST'])
 def register():
@@ -139,6 +140,7 @@ def login():
 
             return jsonify(res)
 
+
 @authentication.route('/auth/reset-password', methods=['POST'])
 def reset_password():
     """ Reset password of an existing user
@@ -198,6 +200,7 @@ def reset_password():
             }
 
         return jsonify(res)
+
 
 @authentication.route('/auth/logout', methods=['POST'])
 def logout():

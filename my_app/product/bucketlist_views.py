@@ -1,8 +1,9 @@
-from flask import request, jsonify, Blueprint, abort, session, make_response
-from my_app import db, app
-from my_app.product.models import User, Bucketlist, BucketlistItem
+from flask import request, jsonify, Blueprint
+from my_app import db
+from my_app.product.models import User, Bucketlist
 
 bucketlist = Blueprint('bucketlist', __name__)
+
 
 @bucketlist.route('/bucketlists/', methods=['POST', 'GET'])
 def add_or_view_bucketlist():
@@ -42,7 +43,7 @@ def add_or_view_bucketlist():
                 if not item:
                     bucketlist = Bucketlist(name=name)
                     db.session.add(bucketlist)
-                    user.bucketlists.append(bucketlist) # FK relationship
+                    user.bucketlists.append(bucketlist)  # FK relationship
                     db.session.commit()
                     res = {
                         'bucketlist': bucketlist.name
@@ -83,7 +84,8 @@ def add_or_view_bucketlist():
                       description: "PLease Login to use the application"
                """
     if request.method == 'GET':
-        search_name = request.args.get('q', '') #http://localhost:5000/bucketlists/?q=Oceania, implements this kind of search
+        search_name = request.args.get('q', '')  # http://localhost:5000/bucketlists/?q=Oceania, implements this kind
+        #  of search
         limit = request.args.get('limit', '')
         auth_token = request.headers.get('Authorization')
         if auth_token:
@@ -98,7 +100,8 @@ def add_or_view_bucketlist():
                     bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.filter_by(owner_id=resp).all()
                 }
             elif isinstance(resp, int) and search_name:
-                search_result = Bucketlist.query.filter(Bucketlist.name.match('%'+search_name+'%')).filter_by(owner_id=resp).all()
+                search_result = Bucketlist.query.filter(Bucketlist.name.match('%'+search_name+'%')).\
+                    filter_by(owner_id=resp).all()
                 if search_result:
                     res = {
 
@@ -120,8 +123,8 @@ def add_or_view_bucketlist():
             }
         return jsonify(res)
 
-@bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['PUT','DELETE', 'GET'])
 
+@bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['PUT','DELETE', 'GET'])
 def view_update_delete_bucketlist(bucketlistID):
     """ Updating a bucketlist
                             ---

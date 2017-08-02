@@ -1,5 +1,5 @@
-from flask import request, jsonify, Blueprint, abort, session, make_response
-from my_app import db, app
+from flask import request, jsonify, Blueprint
+from my_app import db
 from my_app.product.models import User, Bucketlist, BucketlistItem
 
 bucketlistitems = Blueprint('bucketlistitems', __name__)
@@ -7,7 +7,7 @@ bucketlistitems = Blueprint('bucketlistitems', __name__)
 
 @bucketlistitems.route('/bucketlists/<int:bucketlistID>/items/', methods=['POST'])
 def add_item_to_bucketlist(bucketlistID):
-    if request.method=='POST':
+    if request.method == 'POST':
         title = request.form.get('title')
         deadline = request.form.get('deadline')
         status = request.form.get('status')
@@ -18,7 +18,7 @@ def add_item_to_bucketlist(bucketlistID):
                 bucketlist = Bucketlist.query.filter(Bucketlist.owner_id==resp).filter_by(id=bucketlistID).first()
                 if bucketlist:
                     bucketlist_item = BucketlistItem(title, deadline,status)
-                    db.session.add(bucketlist_item) # FK relationship
+                    db.session.add(bucketlist_item)  # FK relationship
                     bucketlist.items.append(bucketlist_item)
                     db.session.commit()
                     res = {
@@ -41,9 +41,10 @@ def add_item_to_bucketlist(bucketlistID):
             }
         return jsonify(res)
 
+
 @bucketlistitems.route('/bucketlists/<int:bucketlistID>/items/<int:BLitemID>', methods=['PUT','DELETE'])
 def update_or_delete_item_in_bucketlist(bucketlistID, BLitemID):
-    if request.method=='PUT':
+    if request.method == 'PUT':
         title = request.form.get('title')
         deadline = request.form.get('deadline')
         status = request.form.get('status')
@@ -80,7 +81,7 @@ def update_or_delete_item_in_bucketlist(bucketlistID, BLitemID):
             }
         return jsonify(res)
 
-    if request.method=='DELETE':
+    if request.method == 'DELETE':
         auth_token = request.headers.get('Authorization')
         if auth_token:
             resp = User.decode_auth_token(auth_token)
