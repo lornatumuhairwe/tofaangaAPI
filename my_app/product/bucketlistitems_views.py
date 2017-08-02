@@ -22,6 +22,7 @@ def add_item_to_bucketlist(bucketlistID):
                     bucketlist.items.append(bucketlist_item)
                     db.session.commit()
                     res = {
+                        'message': 'Bucketlist item added successfully',
                         'buckelist Item': bucketlist_item.title
                     }
                 else:
@@ -60,7 +61,8 @@ def update_or_delete_item_in_bucketlist(bucketlistID, BLitemID):
                     res = {
                         'buckelist Item': bucketlist_item.title,
                         'Deadline': bucketlist_item.deadline,
-                        'status': bucketlist_item.status
+                        'status': bucketlist_item.status,
+                        'message': 'Bucketlist item updated successfully'
                     }
                 else:
                     res = {
