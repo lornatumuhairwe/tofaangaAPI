@@ -88,6 +88,33 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual(data['code'], 401)
         self.assertEqual('fail', data['status'])
 
+    def test_user_can_reset_password(self):
+        rv = self.app.post('/auth/reset-password', data=dict(
+            email=self.user.email,
+            newpassword='1234',
+            cnewpassword='1234'
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertEqual(data['message'],'Password reset successful')
+
+    def test_user_cannot_reset_password_for_a_user_that_doesnt_exist(self):
+        rv = self.app.post('/auth/reset-password', data=dict(
+            email='lt',
+            newpassword='1234',
+            cnewpassword='1234'
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertEqual(data['message'],'User not found')
+
+    def test_user_cannot_reset_password_when_the_confirmation_password_is_mismatched(self):
+        rv = self.app.post('/auth/reset-password', data=dict(
+            email=self.user.email,
+            newpassword='12345',
+            cnewpassword='1234'
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertEqual(data['message'],'Password mismatch')
+
     def logout(self, token):
         return self.app.post('/auth/logout',
                             headers=dict(Authorization=token))
@@ -103,7 +130,12 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual('successfully logged out', data['status'])
 
     def test_return_error_message_when_unauthenticated_user_accesses_logout_route(self):
-        rv = self.logout('')
+        rv = self.logout(None)
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Invalid token, Login again', data['message'])
+
+    def test_cannot_logout_user_without_token(self):
+        rv = self.app.post('/auth/logout')
         data = json.loads(rv.data.decode())
         self.assertEqual('Token not found, Login to get one', data['message'])
 
