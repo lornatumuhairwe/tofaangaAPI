@@ -18,26 +18,32 @@ def register():
     """ Registration of a new user
             ---
             tags:
-              - "Authentication operations"
+            - "Authentication operations"
+            consumes:
+                - "multipart/form-data"
+            produces:
+                - "application/json"
             parameters:
-              - in: "body"
-                name: "Signup"
-                description: "Email, password, name, birth_date submitted"
-                required: true
-                schema:
-                  type: "object"
-                  required:
-                  - "email"
-                  - "password"
-                  properties:
-                    email:
-                      type: "string"
-                    password:
-                      type: "string"
-                    name:
-                      type: "string"
-                    date_of_birth:
-                      type: "date"
+            - name: "email"
+              in: "formData"
+              description: "Email of new user"
+              required: true
+              type: "string"
+            - name: "password"
+              in: "formData"
+              description: "Password of new user"
+              required: true
+              type: "string"
+            - name: "name"
+              in: "formData"
+              description: "Name of new user"
+              required: false
+              type: "string"
+            - name: "birthdate"
+              in: "formData"
+              description: "Birthdate of new user"
+              required: false
+              type: "string"
             responses:
                 200:
                   description: "Registration Successful"
@@ -81,33 +87,33 @@ def register():
 
 @authentication.route('/auth/login', methods=['POST'])
 def login():
-    """ Login of existing user
-         ---
-         tags:
-           - "Authentication operations"
-         parameters:
-           - in: "body"
-             name: "Login"
-             description: "Email and password submitted"
-             required: true
-             schema:
-               type: "object"
-               required:
-               - "email"
-               - "password"
-               properties:
-                 email:
-                   type: "string"
-                 password:
-                   type: "string"
-         responses:
-             200:
-               description: " Successfully logged in"
-             400:
-               description: "Not allowed"
-             401:
-               description: " Incorrect email or password"
-        """
+    """ Login user
+                ---
+                tags:
+                - "Authentication operations"
+                consumes:
+                    - "multipart/form-data"
+                produces:
+                    - "application/json"
+                parameters:
+                - name: "email"
+                  in: "formData"
+                  description: "Email of user"
+                  required: true
+                  type: "string"
+                - name: "password"
+                  in: "formData"
+                  description: "Password of user"
+                  required: true
+                  type: "string"
+                responses:
+                    200:
+                      description: "Login Successful"
+                    400:
+                      description: "Login Failed"
+                    401:
+                      description: "Login doesn't exist"
+               """
     email = request.form.get('email')
     password = request.form.get('password')
     user = User.query.filter_by(email=email).first()
@@ -143,35 +149,37 @@ def login():
 
 @authentication.route('/auth/reset-password', methods=['POST'])
 def reset_password():
-    """ Reset password of an existing user
+    """ Reset user Password
                 ---
                 tags:
-                  - "Authentication operations"
+                - "Authentication operations"
+                consumes:
+                    - "multipart/form-data"
+                produces:
+                    - "application/json"
                 parameters:
-                  - in: "body"
-                    name: "Password reset"
-                    description: "User wishes to reset his/her password"
-                    required: true
-                    schema:
-                      type: "object"
-                      required:
-                      - "email"
-                      - "newpassword"
-                      - "cnewpassword"
-                      properties:
-                        email:
-                          type: "string"
-                        newpassword:
-                          type: "string"
-                        cnewpassword:
-                          type: "string"
+                - name: "email"
+                  in: "formData"
+                  description: "Email of user"
+                  required: true
+                  type: "string"
+                - name: "newpassword"
+                  in: "formData"
+                  description: "New password of user"
+                  required: true
+                  type: "string"
+                - name: "cnewpassword"
+                  in: "formData"
+                  description: "Enter new password of user again"
+                  required: true
+                  type: "string"
                 responses:
                     200:
-                      description: "Reset of password successful"
+                      description: "Password reset Successful"
                     400:
-                      description: "Reset of password Failed"
+                      description: "Password reset Failed"
                     401:
-                      description: "Reset of password Failed, try again"
+                      description: "Password reset doesn't exist"
                """
     email = request.form.get('email')
     new_password = request.form.get('newpassword')
@@ -196,7 +204,7 @@ def reset_password():
             }
         else:
             res = {
-                'message': 'Password mismatch'
+                'message': "Confirmed password doesn't match password"
             }
 
         return jsonify(res)
@@ -204,30 +212,28 @@ def reset_password():
 
 @authentication.route('/auth/logout', methods=['POST'])
 def logout():
-    """ Logout of user
-                    ---
-                    tags:
-                      - "Authentication operations"
-                    parameters:
-                      - in: "body"
-                        name: "Logout"
-                        description: "User wishes to logout of current session"
-                        required: true
-                        schema:
-                          type: "object"
-                          required:
-                          - "Authentication token"
-                          properties:
-                            auth_token:
-                              type: "string"
-                    responses:
-                        200:
-                          description: "User logged out successful"
-                        400:
-                          description: "User logged out Failed"
-                        401:
-                          description: "You need to login to access this function
-                   """
+    """ User Logout
+            ---
+            tags:
+            - "Authentication operations"
+            consumes:
+                - "application/json"
+            produces:
+                - "application/json"
+            parameters:
+            - name: "Authorization"
+              in: "header"
+              description: "Token of a logged in user"
+              required: true
+              type: "string"
+            responses:
+                200:
+                  description: "Logout Successful"
+                400:
+                  description: "Logout Failed"
+                401:
+                  description: "Logout doesn't exist"
+           """
     auth_token = request.headers.get('Authorization')
     if auth_token:
         resp = User.decode_auth_token(auth_token)
