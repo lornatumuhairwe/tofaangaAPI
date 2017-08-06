@@ -5,32 +5,35 @@ from my_app.product.models import User, Bucketlist
 bucketlist = Blueprint('bucketlist', __name__)
 
 
-@bucketlist.route('/bucketlists/', methods=['POST', 'GET'])
-def add_or_view_bucketlist():
+@bucketlist.route('/bucketlists/', methods=['POST'])
+def add_bucketlist():
     """ Adding a bucketlist
-                ---
-                tags:
-                  - "Bucketlist operations"
-                parameters:
-                  - in: "body"
-                    name: "Add Buckelist"
-                    description: "User adds a bucketlist, the operation requires a user to be logged in"
-                    required: false
-                    schema:
-                      type: "object"
-                      required:
-                      - "name"
-                      properties:
-                        name:
-                          type: "string"
-                responses:
-                    200:
-                      description: "Bucketlist added successfully"
-                    400:
-                      description: "Bucketlist addition Failed"
-                    401:
-                      description: "PLease Login to use the application"
-               """
+            ---
+            tags:
+            - "Bucketlist operations"
+            consumes:
+                - "multipart/form-data"
+            produces:
+                - "application/json"
+            parameters:
+            - name: "Authorization"
+              in: "header"
+              description: "Token of a logged in user"
+              required: true
+              type: "string"
+            - name: "name"
+              in: "formData"
+              description: "Token of a logged in user"
+              required: true
+              type: "string"
+            responses:
+                200:
+                  description: "Bucketlist Added Successfully"
+                400:
+                  description: "Bucketlist Add Failed"
+                401:
+                  description: "Doesn't exist"
+           """
     if request.method=='POST':
         name = request.form.get('name')
         auth_token = request.headers.get('Authorization')
@@ -64,25 +67,41 @@ def add_or_view_bucketlist():
             }
         return jsonify(res)
 
-    """ Viewing all bucketlists
-                ---
-                tags:
-                  - "Bucketlist operations"
-                parameters:
-                  - in: "body"
-                    name: "Add Buckelist"
-                    description: "User views all his/her bucketlists, the operation requires a user to be logged in"
-                    required: false
-                    schema:
-                      type: "object"
-                responses:
-                    200:
-                      description: "Bucketlist locaded successfully"
-                    400:
-                      description: "Bucketlist loading Failed"
-                    401:
-                      description: "PLease Login to use the application"
-               """
+
+@bucketlist.route('/bucketlists/', methods=['GET'])
+def view_bucketlist():
+    """ View bucketlists
+            ---
+            tags:
+            - "Bucketlist operations"
+            consumes:
+                - "multipart/form-data"
+            produces:
+                - "application/json"
+            parameters:
+            - name: "Authorization"
+              in: "header"
+              description: "Token of a logged in user"
+              required: true
+              type: "string"
+            - name: q
+              in: "query"
+              description: "Bucketlist a user would like to search for"
+              required: false
+              type: "string"
+            - name: limit
+              in: "query"
+              description: "The maximum number of bucketlists that a user would like to return"
+              required: false
+              type: "integer"
+            responses:
+                200:
+                  description: "Bucketlist Added Successfully"
+                400:
+                  description: "Bucketlist Add Failed"
+                401:
+                  description: "Doesn't exist"
+           """
     if request.method == 'GET':
         search_name = request.args.get('q', '')  # http://localhost:5000/bucketlists/?q=Oceania, implements this kind
         #  of search
@@ -124,33 +143,40 @@ def add_or_view_bucketlist():
         return jsonify(res)
 
 
-@bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['PUT','DELETE', 'GET'])
-def view_update_delete_bucketlist(bucketlistID):
-    """ Updating a bucketlist
-                            ---
-                            tags:
-                              - "Bucketlist operations"
-                            parameters:
-                              - in: "body"
-                                name: "Updating Buckelist"
-                                description: "User updates a bucketlist, the operation requires a user to be logged in"
-                                required: false
-                                schema:
-                                  type: "object"
-                                  required:
-                                  - "newname"
-                                  properties:
-                                    newname:
-                                      type: "string"
-                            responses:
-                                200:
-                                  description: "Bucketlist updated successfully"
-                                400:
-                                  description: "Bucketlist update Failed"
-                                401:
-                                  description: "PLease Login to use the application"
-
-                           """
+@bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['PUT'])
+def update_bucketlist(bucketlistID):
+    """ Update bucketlist
+            ---
+            tags:
+            - "Bucketlist operations"
+            consumes:
+                - "multipart/form-data"
+            produces:
+                - "application/json"
+            parameters:
+            - name: "Authorization"
+              in: "header"
+              description: "Token of a logged in user"
+              required: true
+              type: "string"
+            - name: bucketlistID
+              in: "path"
+              description: "The ID the bucketlist"
+              required: true
+              type: "string"
+            - name: newname
+              in: "formData"
+              description: "The new name of the bucketlist"
+              required: true
+              type: "string"
+            responses:
+                200:
+                  description: "Bucketlist updated Successfully"
+                400:
+                  description: "Bucketlist update Failed"
+                401:
+                  description: "Update Doesn't exist"
+           """
     if request.method=='PUT':
         #res = {'message': 'Update Function!'}
         newname = request.form.get('newname')
@@ -182,6 +208,36 @@ def view_update_delete_bucketlist(bucketlistID):
             }
         return jsonify(res)
 
+
+@bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['GET'])
+def view_one_bucketlist(bucketlistID):
+    """ View bucketlist
+            ---
+            tags:
+            - "Bucketlist operations"
+            consumes:
+                - "multipart/form-data"
+            produces:
+                - "application/json"
+            parameters:
+            - name: "Authorization"
+              in: "header"
+              description: "Token of a logged in user"
+              required: true
+              type: "string"
+            - name: bucketlistID
+              in: "path"
+              description: "The ID the bucketlist"
+              required: true
+              type: "string"
+            responses:
+                200:
+                  description: "Successful"
+                400:
+                  description: "Failed"
+                401:
+                  description: "Invalid parameters"
+               """
     if request.method == 'GET':
         # name = request.form.get('name')
         auth_token = request.headers.get('Authorization')
@@ -209,6 +265,35 @@ def view_update_delete_bucketlist(bucketlistID):
             }
         return jsonify(res)
 
+@bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['DELETE'])
+def delete_bucketlist(bucketlistID):
+    """ Delete bucketlist
+            ---
+            tags:
+            - "Bucketlist operations"
+            consumes:
+                - "multipart/form-data"
+            produces:
+                - "application/json"
+            parameters:
+            - name: "Authorization"
+              in: "header"
+              description: "Token of a logged in user"
+              required: true
+              type: "string"
+            - name: bucketlistID
+              in: "path"
+              description: "The ID the bucketlist"
+              required: true
+              type: "string"
+            responses:
+                200:
+                  description: "Delete Successful"
+                400:
+                  description: "Delete Failed"
+                401:
+                  description: "Invalid parameters"
+           """
     if request.method=='DELETE':
         auth_token = request.headers.get('Authorization')
         if auth_token:
