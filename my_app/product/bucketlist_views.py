@@ -1,6 +1,6 @@
 from flask import request, jsonify, Blueprint
 from my_app import db
-from my_app.product.models import User, Bucketlist
+from my_app.product.models import User, Bucketlist, BucketlistItem
 
 bucketlist = Blueprint('bucketlist', __name__)
 
@@ -245,9 +245,10 @@ def view_one_bucketlist(bucketlistID):
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int):
                 bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
+                bucketlistItems = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).all()
                 if bucketlist:
                     res = {
-                        bucketlist.id: bucketlist.name
+                        bucketlistItem.id: bucketlistItem.title for bucketlistItem in bucketlistItems
                     }
                 else:
                     res = {
