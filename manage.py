@@ -11,7 +11,9 @@ cov = Coverage(
     include='my_app/*',
     omit=[
         'my_app/tests/*',
-        'venv/*'
+        'venv/*',
+        'my_app/__init__.py',
+        'my_app/product/models.py'
     ]
 )
 

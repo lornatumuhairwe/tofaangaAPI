@@ -140,7 +140,6 @@ def login():
             res = {
                 'message': 'Password mismatch',
                 'status': 'fail',
-                'way forward': 'Try again. ',
                 'code': 401
             }
 
