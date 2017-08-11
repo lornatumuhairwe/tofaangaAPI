@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config.DevelopmentConfigs')
 db = SQLAlchemy(app)
+from flask_cors import CORS, cross_origin
 from flasgger import Swagger
 
 from my_app.product.views import catalog, authentication
@@ -14,4 +15,5 @@ app.register_blueprint(authentication)
 app.register_blueprint(bucketlist)
 app.register_blueprint(bucketlistitems)
 Swagger(app)
+cors = CORS(app, resources={r"/*": {"origins": "*"}})
 db.create_all()
