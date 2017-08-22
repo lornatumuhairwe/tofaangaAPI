@@ -48,9 +48,7 @@ def register():
                 200:
                   description: "Registration Successful"
                 400:
-                  description: "Registration Failed"
-                401:
-                  description: " email exists in the database"
+                  description: "Registration Failed. Bad request, use appropriate parameters"
            """
     name = request.form.get('name')
     email = request.form.get('email')
@@ -61,6 +59,8 @@ def register():
         res = {
             'message': 'Supply username and password'
         }
+
+        return jsonify(res), 400
 
     elif not user:
         user = User(email, password, name, birth_date)
@@ -77,12 +77,14 @@ def register():
             'message': 'Registration Successful'
         }
 
+        return jsonify(res), 200
+
     else:
         res = {
             'message': 'User Exists in the records'
         }
 
-    return jsonify(res)
+        return jsonify(res), 400
 
 
 @authentication.route('/auth/login', methods=['POST'])
@@ -110,21 +112,18 @@ def login():
                     200:
                       description: "Login Successful"
                     400:
-                      description: "Login Failed"
-                    401:
-                      description: "Login doesn't exist"
+                      description: "Login Failed. Bad request, use appropriate parameters "
                """
     email = request.form.get('email')
     password = request.form.get('password')
     user = User.query.filter_by(email=email).first()
-    #print (user.email)
+    # print (user.email)
     if not user:
-        #abort(404)
+        # abort(404)
         res = {
             'message': 'User not found',
-            'code': 401
         }
-        return jsonify(res)
+        return jsonify(res), 400
     else:
         if user.password == password:
             auth_token = user.encode_auth_token(user.id)
@@ -132,18 +131,16 @@ def login():
                 res = {
                     'status': 'success',
                     'message': 'successfully logged in',
-                    'code': 200,
                     'auth_token': auth_token.decode()
                 }
-                return jsonify(res)
+                return jsonify(res), 200
         else:
             res = {
                 'message': 'Password mismatch',
-                'status': 'fail',
-                'code': 401
+                'status': 'fail'
             }
 
-            return jsonify(res)
+            return jsonify(res), 400
 
 
 @authentication.route('/auth/reset-password', methods=['POST'])
@@ -176,9 +173,7 @@ def reset_password():
                     200:
                       description: "Password reset Successful"
                     400:
-                      description: "Password reset Failed"
-                    401:
-                      description: "Password reset doesn't exist"
+                      description: "Password reset Failed. Bad request, use appropriate parameters"
                """
     email = request.form.get('email')
     new_password = request.form.get('newpassword')
@@ -189,7 +184,7 @@ def reset_password():
         res = {
             'message': 'User not found'
         }
-        return jsonify(res)
+        return jsonify(res), 400
     else:
         if new_password == cnew_password:
             user.password = new_password
@@ -201,12 +196,13 @@ def reset_password():
                 'password': user.password,
                 'message': 'Password reset successful'
             }
+            return jsonify(res), 200
         else:
             res = {
                 'message': "Confirmed password doesn't match password"
             }
 
-        return jsonify(res)
+            return jsonify(res), 400
 
 
 @authentication.route('/auth/logout', methods=['POST'])
@@ -229,15 +225,15 @@ def logout():
                 200:
                   description: "Logout Successful"
                 400:
-                  description: "Logout Failed"
+                  description: "Logout Failed. Bad request, use appropriate parameters"
                 401:
-                  description: "Logout doesn't exist"
+                  description: "Logout Failed. Invalid token, Login again or Token not found, Login to get one"
            """
     auth_token = request.headers.get('Authorization')
     if auth_token:
         resp = User.decode_auth_token(auth_token)
         if isinstance(resp, int):
-            #if resp = users ID, then the auth_token should be destroyed.
+            # if resp = users ID, then the auth_token should be destroyed.
             blacklist_token = BlacklistToken(token=auth_token)
             try:
                 db.session.add(blacklist_token)
@@ -249,19 +245,23 @@ def logout():
                         'user_id': user.id,
                         'email': user.email
                     }}
+                return jsonify(res), 200
+
             except Exception as e:
                 res = {
                     'status': 'fail',
                     'message': e
                 }
+                return jsonify(res), 400
         else:
             res = {
                 'status': 'fail',
                 'message': 'Invalid token, Login again'
             }
+            return jsonify(res), 401
     else:
         res = {
             'status': 'fail',
             'message': 'Token not found, Login to get one'
         }
-    return jsonify(res)
+        return jsonify(res), 401
