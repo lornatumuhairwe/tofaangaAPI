@@ -30,9 +30,9 @@ def add_bucketlist():
                 200:
                   description: "Bucketlist Added Successfully"
                 400:
-                  description: "Bucketlist Add Failed"
+                  description: "Bucketlist Add Failed. Bad request, use appropriate parameters"
                 401:
-                  description: "Doesn't exist"
+                  description: "Bucketlist Add Failed. Invalid token, Login again or Token not found, Login to get one"
            """
     if request.method=='POST':
         name = request.form.get('name')
@@ -49,23 +49,27 @@ def add_bucketlist():
                     user.bucketlists.append(bucketlist)  # FK relationship
                     db.session.commit()
                     res = {
-                        'bucketlist': bucketlist.name
+                        'bucketlist': bucketlist.name,
+                        'message': 'Bucketlist added successfully'
                     }
+                    return jsonify(res), 200
                 else:
                     res = {
                         'message': 'Bucketlist exists'
                     }
+                    return jsonify(res), 400
             else:
                 res = {
                     'status': 'fail',
                     'message': 'Invalid token, Login again'
                 }
+                return jsonify(res), 401
         else:
             res = {
                 'status': 'fail',
                 'message': 'Token not found, Login to get one'
             }
-        return jsonify(res)
+            return jsonify(res), 401
 
 
 @bucketlist.route('/bucketlists/', methods=['GET'])
@@ -96,11 +100,11 @@ def view_bucketlist():
               type: "integer"
             responses:
                 200:
-                  description: "Bucketlist Added Successfully"
+                  description: "Bucketlist retrieved Successfully"
                 400:
-                  description: "Bucketlist Add Failed"
+                  description: "Bucketlist retrieval Failed. Bad request, use appropriate parameters"
                 401:
-                  description: "Doesn't exist"
+                  description: "Bucketlist retrieval Failed. Invalid token, Login again or Token not found, Login to get one"
            """
     if request.method == 'GET':
         search_name = request.args.get('q', '')  # http://localhost:5000/bucketlists/?q=Oceania, implements this kind
@@ -111,36 +115,52 @@ def view_bucketlist():
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int) and limit:
                 limit_result = Bucketlist.query.filter_by(owner_id=resp).paginate(page=1, per_page=int(limit)).items
-                res = {
-                    bucketlist.id: bucketlist.name for bucketlist in limit_result
-                }
+                if len(limit_result) > 0:
+                    res = {
+                        bucketlist.id: bucketlist.name for bucketlist in limit_result
+                    }
+                    return jsonify(res), 200
+                else:
+                    res = {
+                        'message': 'No bucketlists yet.'
+                        }
+                    return jsonify(res), 200
             elif isinstance(resp, int) and not search_name:
-                res = {
-                    bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.filter_by(owner_id=resp).all()
-                }
+                if len(Bucketlist.query.filter_by(owner_id=resp).all()) > 0:
+                    res = {
+                        bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.filter_by(owner_id=resp).all()
+                    }
+                    return jsonify(res), 200
+                else:
+                    res = {
+                        'message': 'No bucketlists yet.'
+                    }
+                    return jsonify(res), 200
             elif isinstance(resp, int) and search_name:
                 search_result = Bucketlist.query.filter(Bucketlist.name.match('%'+search_name+'%')).\
                     filter_by(owner_id=resp).all()
                 if search_result:
                     res = {
-
                         bucketlist.id: bucketlist.name for bucketlist in search_result
                         }
+                    return jsonify(res), 200
                 else:
                     res = {
                         'message': 'Bucketlist not found'
                     }
+                    return jsonify(res), 200
             else:
                 res = {
                     'status': 'fail',
                     'message': 'Invalid token, Login again'
                 }
+                return jsonify(res), 401
         else:
             res = {
                 'status': 'fail',
                 'message': 'Token not found, Login to get one'
             }
-        return jsonify(res)
+            return jsonify(res), 401
 
 
 @bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['PUT'])
@@ -173,9 +193,9 @@ def update_bucketlist(bucketlistID):
                 200:
                   description: "Bucketlist updated Successfully"
                 400:
-                  description: "Bucketlist update Failed"
+                  description: "Bucketlist update Failed. Bad request, use appropriate parameters"
                 401:
-                  description: "Update Doesn't exist"
+                  description: "Bucketlist update Failed. Invalid token, Login again or Token not found, Login to get one"
            """
     if request.method=='PUT':
         #res = {'message': 'Update Function!'}
@@ -192,21 +212,24 @@ def update_bucketlist(bucketlistID):
                         #bucketlist.id: bucketlist.name,
                         'message': 'Bucketlist updated successfully'
                     }
+                    return jsonify(res), 200
                 else:
                     res = {
                         'message': 'Bucketlist doesnt exist'
                     }
+                    return jsonify(res), 400
             else:
                 res = {
                     'status': 'fail',
                     'message': 'Invalid token, Login again'
                 }
+                return jsonify(res), 401
         else:
             res = {
                 'status': 'fail',
                 'message': 'Token not found, Login to get one'
             }
-        return jsonify(res)
+            return jsonify(res), 401
 
 
 @bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['GET'])
@@ -234,9 +257,9 @@ def view_one_bucketlist(bucketlistID):
                 200:
                   description: "Successful"
                 400:
-                  description: "Failed"
+                  description: "Get Items in Bucketlist failed. Bad request, use appropriate parameters"
                 401:
-                  description: "Invalid parameters"
+                  description: "Get Items in Bucketlist failed. Invalid token, Login again or Token not found, Login to get one"
                """
     if request.method == 'GET':
         # name = request.form.get('name')
@@ -247,24 +270,33 @@ def view_one_bucketlist(bucketlistID):
                 bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
                 bucketlistItems = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).all()
                 if bucketlist:
-                    res = {
-                        bucketlistItem.id: bucketlistItem.title for bucketlistItem in bucketlistItems
-                    }
+                    if len(bucketlistItems)>0:
+                        res = {
+                            bucketlistItem.id: bucketlistItem.title for bucketlistItem in bucketlistItems
+                        }
+                        return jsonify(res), 200
+                    else:
+                        res = {
+                            'message': 'No items in this bucketlist'
+                        }
+                        return jsonify(res), 200
                 else:
                     res = {
                         'message': 'Bucketlist doesnt exist'
                     }
+                    return jsonify(res), 400
             else:
                 res = {
                     'status': 'fail',
                     'message': 'Invalid token, Login again'
                 }
+                return jsonify(res), 401
         else:
             res = {
                 'status': 'fail',
                 'message': 'Token not found, Login to get one'
             }
-        return jsonify(res)
+            return jsonify(res), 401
 
 @bucketlist.route('/bucketlists/<int:bucketlistID>', methods=['DELETE'])
 def delete_bucketlist(bucketlistID):
@@ -291,9 +323,9 @@ def delete_bucketlist(bucketlistID):
                 200:
                   description: "Delete Successful"
                 400:
-                  description: "Delete Failed"
+                  description: "Delete Failed. Bad request, use appropriate parameters"
                 401:
-                  description: "Invalid parameters"
+                  description: "Delete Failed. Invalid token, Login again or Token not found, Login to get one"
            """
     if request.method=='DELETE':
         auth_token = request.headers.get('Authorization')
@@ -307,18 +339,21 @@ def delete_bucketlist(bucketlistID):
                     res = {
                         'message': 'Bucketlist deleted successfully'
                     }
+                    return jsonify(res), 200
                 else:
                     res = {
                         'message': 'Bucketlist doesnt exist'
                     }
+                    return jsonify(res), 400
             else:
                 res = {
                     'status': 'fail',
                     'message': 'Invalid token, Login again'
                 }
+                return jsonify(res), 401
         else:
             res = {
                 'status': 'fail',
                 'message': 'Token not found, Login to get one'
             }
-        return jsonify(res)
+            return jsonify(res), 401
