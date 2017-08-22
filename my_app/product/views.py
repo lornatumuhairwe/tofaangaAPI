@@ -1,5 +1,5 @@
 from flask import request, jsonify, Blueprint
-from my_app import db
+from my_app import db, app
 from my_app import bcrypt
 from my_app.product.models import User, BlacklistToken
 
@@ -12,6 +12,13 @@ authentication = Blueprint('authentication', __name__)
 @catalog.route('/home')
 def home():
     return "Welcome to the User Home"
+
+@app.errorhandler(404)
+def page_not_found(e):
+    res = {
+        "message": "The resource you have requested is not available"
+    }
+    return jsonify(res), 404
 
 
 @authentication.route('/auth/register', methods=['POST'])
