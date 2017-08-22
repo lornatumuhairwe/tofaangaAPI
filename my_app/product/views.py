@@ -1,5 +1,6 @@
 from flask import request, jsonify, Blueprint
 from my_app import db
+from my_app import bcrypt
 from my_app.product.models import User, BlacklistToken
 
 # swagger = Swagger(app)
@@ -63,6 +64,7 @@ def register():
         return jsonify(res), 400
 
     elif not user:
+        password = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(email, password, name, birth_date)
         db.session.add(user)
         db.session.commit()
@@ -125,7 +127,8 @@ def login():
         }
         return jsonify(res), 400
     else:
-        if user.password == password:
+        if bcrypt.check_password_hash(user.password, password):
+        # if user.password == password:
             auth_token = user.encode_auth_token(user.id)
             if auth_token:
                 res = {
@@ -187,7 +190,7 @@ def reset_password():
         return jsonify(res), 400
     else:
         if new_password == cnew_password:
-            user.password = new_password
+            user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
             db.session.commit()
             res = {
                 'name': user.name,
