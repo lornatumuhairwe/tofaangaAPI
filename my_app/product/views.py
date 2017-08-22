@@ -2,6 +2,7 @@ from flask import request, jsonify, Blueprint
 from my_app import db, app
 from my_app import bcrypt
 from my_app.product.models import User, BlacklistToken
+import re
 
 # swagger = Swagger(app)
 catalog = Blueprint('catalog', __name__)
@@ -70,6 +71,13 @@ def register():
 
         return jsonify(res), 400
 
+    elif not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        res = {
+            'message': 'Invalid email'
+        }
+
+        return jsonify(res), 400
+
     elif not user:
         password = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(email, password, name, birth_date)
@@ -126,8 +134,14 @@ def login():
     email = request.form.get('email')
     password = request.form.get('password')
     user = User.query.filter_by(email=email).first()
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        res = {
+            'message': 'Invalid email'
+        }
+
+        return jsonify(res), 400
     # print (user.email)
-    if not user:
+    elif not user:
         # abort(404)
         res = {
             'message': 'User not found',
@@ -189,7 +203,13 @@ def reset_password():
     new_password = request.form.get('newpassword')
     cnew_password = request.form.get('cnewpassword')
     user = User.query.filter_by(email=email).first()
-    if not user:
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        res = {
+            'message': 'Invalid email'
+        }
+
+        return jsonify(res), 400
+    elif not user:
         # abort(404)
         res = {
             'message': 'User not found'
