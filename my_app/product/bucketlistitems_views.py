@@ -45,9 +45,9 @@ def add_item_to_bucketlist(bucketlistID):
                     200:
                       description: "Bucketlist item added Successfully"
                     400:
-                      description: "Bucketlist item addition Failed"
+                      description: "Bucketlist item addition Failed. Bad request, use appropriate parameters"
                     401:
-                      description: "Addition Doesn't exist"
+                      description: "Bucketlist item addition Failed.  Invalid token, Login again or Token not found, Login to get one"
                """
     if request.method == 'POST':
         title = request.form.get('title')
@@ -67,21 +67,24 @@ def add_item_to_bucketlist(bucketlistID):
                         'message': 'Bucketlist item added successfully',
                         'buckelist Item': bucketlist_item.title
                     }
+                    return jsonify(res), 200
                 else:
                     res = {
-                        'message': 'Bucketlist doesnt exist'
+                        'message': "Bucketlist doesn't exist"
                     }
+                    return jsonify(res), 400
             else:
                 res = {
                     'status': 'fail',
                     'message': 'Invalid token, Login again'
                 }
+                return jsonify(res), 401
         else:
             res = {
                 'status': 'fail',
                 'message': 'Token not found, Login to get one'
             }
-        return jsonify(res)
+            return jsonify(res), 401
 
 
 @bucketlistitems.route('/bucketlists/<int:bucketlistID>/items/<int:BLitemID>', methods=['PUT'])
@@ -127,11 +130,11 @@ def update_item_in_bucketlist(bucketlistID, BLitemID):
                   type: "string"
                 responses:
                     200:
-                      description: "Bucketlist item added Successfully"
+                      description: "Bucketlist item updated Successfully"
                     400:
-                      description: "Bucketlist item addition Failed"
+                      description: "Bucketlist item update Failed. Bad request, use appropriate parameters"
                     401:
-                      description: "Addition Doesn't exist"
+                      description: "Bucketlist item update Failed. Invalid token, Login again or Token not found, Login to get one"
         """
     if request.method == 'PUT':
         title = request.form.get('title')
@@ -154,21 +157,24 @@ def update_item_in_bucketlist(bucketlistID, BLitemID):
                         'status': bucketlist_item.status,
                         'message': 'Bucketlist item updated successfully'
                     }
+                    return jsonify(res), 200
                 else:
                     res = {
                         'message': 'Bucketlist item doesnt exist'
                     }
+                    return jsonify(res), 400
             else:
                 res = {
                     'status': 'fail',
                     'message': 'Invalid token, Login again'
                 }
+                return jsonify(res), 401
         else:
             res = {
                 'status': 'fail',
                 'message': 'Token not found, Login to get one'
             }
-        return jsonify(res)
+            return jsonify(res), 401
 
 @bucketlistitems.route('/bucketlists/<int:bucketlistID>/items/<int:BLitemID>', methods=['DELETE'])
 def delete_item_in_bucketlist(bucketlistID, BLitemID):
@@ -198,11 +204,11 @@ def delete_item_in_bucketlist(bucketlistID, BLitemID):
                   type: "string"
                 responses:
                     200:
-                      description: "Bucketlist item added Successfully"
+                      description: "Bucketlist item delete Successfully"
                     400:
-                      description: "Bucketlist item addition Failed"
+                      description: "Bucketlist item delete Failed. Bad request, use appropriate parameters"
                     401:
-                      description: "Addition Doesn't exist"
+                      description: "Bucketlist item delete Failed. Invalid token, Login again or Token not found, Login to get one"
         """
     if request.method == 'DELETE':
         auth_token = request.headers.get('Authorization')
@@ -217,18 +223,21 @@ def delete_item_in_bucketlist(bucketlistID, BLitemID):
                     res = {
                         'message': 'Bucketlist item deleted successfully'
                     }
+                    return jsonify(res), 200
                 else:
                     res = {
-                        'message': 'Bucketlist item doesnt exist'
+                        'message': "Bucketlist item doesn't exist"
                     }
+                    return jsonify(res), 400
             else:
                 res = {
                     'status': 'fail',
                     'message': 'Invalid token, Login again'
                 }
+                return jsonify(res), 401
         else:
             res = {
                 'status': 'fail',
                 'message': 'Token not found, Login to get one'
             }
-        return jsonify(res)
+            return jsonify(res), 401
