@@ -279,7 +279,6 @@ def view_one_bucketlist(bucketlistID):
                         res = {
                             'message': 'No items in this bucketlist'
                         }
-                        return jsonify(res), 200
                 else:
                     res = {
                         'message': 'Bucketlist doesnt exist'
