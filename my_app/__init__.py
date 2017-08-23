@@ -1,9 +1,10 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 
 app = Flask(__name__, instance_relative_config=True)
-app.config.from_object('config.DevelopmentConfigs')
+app.config.from_object(os.getenv('Config'))
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 from flask_cors import CORS, cross_origin
