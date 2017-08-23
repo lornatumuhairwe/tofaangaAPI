@@ -1,0 +1,130 @@
+.signupbackground{
+    background-image: url("../images/background.jpg");
+    background-size: 100% 100%;
+    height: 100vh;
+    width: 100%;
+}
+
+.overlay{
+    background-color: rgba(255, 255, 255, 0.5);
+    position: absolute;
+    top: 60px;
+    height: 85%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.signupbox{
+    background-color: white;
+    margin: auto;
+    height: 80%;
+    width: 30%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.signinbox{
+    background-color: white;
+    margin: auto;
+    height: 50%;
+    width: 30%;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.signupbox input {
+    margin: 10px;
+    border: 1px solid #1b6d85;
+    padding: 12px;
+    border-radius: 10px;
+    width: 100%;
+}
+
+.signupbox input[type="submit"]{
+    width: 100%;
+    background-color: #1b6d85;
+    color: white;
+}
+
+.signinbox input {
+    margin: 10px;
+    border: 1px solid #1b6d85;
+    padding: 12px;
+    border-radius: 10px;
+    width: 100%;
+}
+
+.signinbox input[type="submit"]{
+    width: 100%;
+    background-color: #1b6d85;
+    color: white;
+}
+
+.navigation{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #1b6d85;
+}
+
+.navigation li{
+    float: left;
+    border-right: 1px solid white;
+}
+
+.navigation li a{
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 40px;
+    text-decoration: None;
+}
+
+.bucklists{
+    /*width: 30%;*/
+    margin-left: 10px;
+}
+
+.bucklists ul{
+    list-style-type: none;
+    background-color: #d1ded6;
+    margin: 0;
+    padding: 0;
+}
+
+.bucklists li{
+    border-bottom: 1px solid white;
+}
+
+.bucklists li a{
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 40px;
+    text-decoration: None;
+}
+
+
+
+.bucklists button{
+    margin-left: 100px;
+    margin-top: 20px;
+}
+
+#additembtn{
+    float: right;
+    margin-right: 10px;
+}
+
+.flash{
+    background: red;
+    border 1px solid white;
+    font-size: 50px;
+ }

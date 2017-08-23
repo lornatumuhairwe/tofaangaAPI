@@ -1,4 +1,4 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, render_template
 from my_app import db, app
 from my_app import bcrypt
 from my_app.product.models import User, BlacklistToken
@@ -11,7 +11,7 @@ authentication = Blueprint('authentication', __name__)
 
 @catalog.route('/')
 def home():
-    return "Welcome to the User Home"
+    return render_template('index.html')
 
 @app.errorhandler(404)
 def page_not_found(e):
