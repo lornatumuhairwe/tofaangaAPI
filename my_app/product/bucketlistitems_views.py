@@ -2,7 +2,7 @@ from flask import request, jsonify, Blueprint
 from my_app import db
 from my_app.product.models import User, Bucketlist, BucketlistItem
 
-bucketlistitems = Blueprint('bucketlistitems', __name__)
+bucketlistitems = Blueprint('bucketlistitems', __name__, url_prefix='/api/v1')
 
 
 @bucketlistitems.route('/bucketlists/<int:bucketlistID>/items/', methods=['POST'])

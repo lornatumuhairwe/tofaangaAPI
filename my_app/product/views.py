@@ -5,8 +5,8 @@ from my_app.product.models import User, BlacklistToken
 import re
 
 # swagger = Swagger(app)
-catalog = Blueprint('catalog', __name__)
-authentication = Blueprint('authentication', __name__)
+catalog = Blueprint('catalog', __name__, url_prefix='/api/v1')
+authentication = Blueprint('authentication', __name__, url_prefix='/api/v1')
 
 
 @catalog.route('/')
@@ -19,7 +19,6 @@ def page_not_found(e):
         "message": "The resource you have requested is not available"
     }
     return jsonify(res), 404
-
 
 @authentication.route('/auth/register', methods=['POST'])
 def register():
