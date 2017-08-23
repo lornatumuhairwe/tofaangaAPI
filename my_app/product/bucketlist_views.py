@@ -37,7 +37,12 @@ def add_bucketlist():
     if request.method=='POST':
         name = request.form.get('name')
         auth_token = request.headers.get('Authorization')
-        if auth_token:
+        if not name:
+            res = {
+                'message': 'Bucketlist item should have name'
+            }
+            return jsonify(res), 400
+        elif auth_token:
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int):
                 user = User.query.filter_by(id=resp).first()

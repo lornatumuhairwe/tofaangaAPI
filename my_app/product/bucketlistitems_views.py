@@ -54,7 +54,12 @@ def add_item_to_bucketlist(bucketlistID):
         deadline = request.form.get('deadline')
         status = request.form.get('status')
         auth_token = request.headers.get('Authorization')
-        if auth_token:
+        if not title:
+            res = {
+                'message': 'Bucketlist item has to have a title. Try again.'
+            }
+            return jsonify(res), 400
+        elif auth_token:
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int):
                 bucketlist = Bucketlist.query.filter(Bucketlist.owner_id==resp).filter_by(id=bucketlistID).first()

@@ -10,7 +10,6 @@ authentication = Blueprint('authentication', __name__)
 
 
 @catalog.route('/')
-@catalog.route('/home')
 def home():
     return "Welcome to the User Home"
 
