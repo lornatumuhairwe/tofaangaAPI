@@ -1,5 +1,5 @@
 import json, flask
-from my_app import db, app
+from my_app import db, app, bcrypt
 from my_app.product.models import User, Bucketlist
 import unittest
 
@@ -10,7 +10,7 @@ class TestUserModel(unittest.TestCase):
         db.session.close()
         db.drop_all()
         db.create_all()
-        user = User('testi', 'testpass')
+        user = User('testi@mail.com', bcrypt.generate_password_hash('testpass').decode('utf-8'))
         db.session.add(user)
         db.session.commit()
         bucketlist = Bucketlist(name='Cities')
@@ -25,19 +25,19 @@ class TestUserModel(unittest.TestCase):
         return self.app, self.auth_token, self.user, self.bucketlistID
 
     def test_whether_the_encode_auth_token_works(self):
-        user = User.query.filter_by(email="testi").first()
+        user = User.query.filter_by(email="testi@mail.com").first()
         auth_token = user.encode_auth_token(user.id)  # encoding itself returns bytes
         self.assertTrue(isinstance(auth_token, bytes))
 
     def test_decode_auth_token(self):
-        user = User.query.filter_by(email="testi").first()
+        user = User.query.filter_by(email="testi@mail.com").first()
         auth_token = user.encode_auth_token(user.id)
         self.assertTrue(isinstance(auth_token, bytes))
         self.assertTrue(User.decode_auth_token(auth_token.decode('utf-8')) is 1) #when you decode and pick up sub, you
                                                                                   # pick the usr.id that is an Int
 
     def registration(self, email, password, birth_date=None, name=None):
-        return self.app.post('/auth/register', data=dict(
+        return self.app.post('/api/v1/auth/register', data=dict(
             email=email,
             password=password,
             birth_date=birth_date,
@@ -50,7 +50,7 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual('Registration Successful', data['message'])
 
     def test_register_user_that_already_exists_return_error_message(self):
-        rv = self.registration('testi', '1234')
+        rv = self.registration('testi@mail.com', '1234')
         data = json.loads(rv.data.decode())
         self.assertEqual('User Exists in the records', data['message'])
 
@@ -66,34 +66,31 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual('Supply username and password', data['message'])
 
     def login(self, email, password):
-        return self.app.post('/auth/login', data=dict(
+        return self.app.post('/api/v1/auth/login', data=dict(
             email=email,
             password=password
         ))
 
     def test_login(self):
-        rv = self.login('testi', 'testpass')
+        rv = self.login('testi@mail.com', 'testpass')
         data = json.loads(rv.data.decode())
         self.assertEqual('successfully logged in', data['message'])
         self.assertEqual('success', data['status'])
-        self.assertEqual(200, data['code'])
         self.assertTrue(data['auth_token'])
 
     def test_login_non_existent_user_return_error_message(self):
         rv = self.login('lt@gmail.com', 'testpasser')
         data = json.loads(rv.data.decode())
         assert 'User not found' in data['message']
-        self.assertEqual(data['code'], 401)
 
     def test_login_with_incorrect_password(self):
-        rv = self.login('testi', 'testpasser')
+        rv = self.login('testi@mail.com', 'testpasser')
         data = json.loads(rv.data.decode())
         self.assertEqual('Password mismatch', data['message'])
-        self.assertEqual(data['code'], 401)
         self.assertEqual('fail', data['status'])
 
     def test_user_can_reset_password(self):
-        rv = self.app.post('/auth/reset-password', data=dict(
+        rv = self.app.post('/api/v1/auth/reset-password', data=dict(
             email=self.user.email,
             newpassword='1234',
             cnewpassword='1234'
@@ -102,8 +99,8 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual(data['message'],'Password reset successful')
 
     def test_user_cannot_reset_password_for_a_user_that_doesnt_exist(self):
-        rv = self.app.post('/auth/reset-password', data=dict(
-            email='lt',
+        rv = self.app.post('/api/v1/auth/reset-password', data=dict(
+            email='lt@mail.com',
             newpassword='1234',
             cnewpassword='1234'
         ))
@@ -111,7 +108,7 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual(data['message'],'User not found')
 
     def test_user_cannot_reset_password_when_the_confirmation_password_is_mismatched(self):
-        rv = self.app.post('/auth/reset-password', data=dict(
+        rv = self.app.post('/api/v1/auth/reset-password', data=dict(
             email=self.user.email,
             newpassword='12345',
             cnewpassword='1234'
@@ -120,11 +117,11 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual(data['message'],"Confirmed password doesn't match password")
 
     def logout(self, token):
-        return self.app.post('/auth/logout',
+        return self.app.post('/api/v1/auth/logout',
                             headers=dict(Authorization=token))
 
     def test_logout_authenticated_users_only_else_return_error_message(self):
-        user = User('testi1', 'testpass')
+        user = User('testi1@mail.com', 'testpass')
         db.session.add(user)
         db.session.commit()
         auth_token = user.encode_auth_token(user.id)
@@ -139,12 +136,12 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual('Invalid token, Login again', data['message'])
 
     def test_cannot_logout_user_without_token(self):
-        rv = self.app.post('/auth/logout')
+        rv = self.app.post('/api/v1/auth/logout')
         data = json.loads(rv.data.decode())
         self.assertEqual('Token not found, Login to get one', data['message'])
 
     def create_bucketlist(self, bucketlist_name, token):
-        return self.app.post('/bucketlists/', data=dict(
+        return self.app.post('/api/v1/bucketlists/', data=dict(
             name=bucketlist_name), headers=dict(Authorization=token))
 
     def test_user_can_add_bucketlist(self):
@@ -163,7 +160,7 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual('Invalid token, Login again',data['message'])
 
     def view_all_bucketlists(self, token):
-        return self.app.get('/bucketlists/', headers=dict(
+        return self.app.get('/api/v1/bucketlists/', headers=dict(
             Authorization=token
         ))
 
@@ -178,20 +175,19 @@ class TestUserModel(unittest.TestCase):
         self.assertEqual('Invalid token, Login again',data['message'])
 
     with app.test_client() as c:
-        rv = c.get('/bucketlists/?q=Cities')
+        rv = c.get('/api/v1/bucketlists/?q=Cities')
         assert flask.request.args['q'] == 'Cities'
-        assert flask.request.path == '/bucketlists/'
-        data = json.loads(rv.data.decode())
+        assert flask.request.path == '/api/v1/bucketlists/'
 
     def test_pagination(self):
-        rv = self.app.get('/bucketlists/?limit=2', headers=dict(
+        rv = self.app.get('/api/v1/bucketlists/?limit=2', headers=dict(
             Authorization=self.auth_token
         ))
         data = json.loads(rv.data.decode())
         self.assertEqual(1, len(data))
 
     def test_name_based_search_of_bucketlist(self):
-        rv = self.app.get('/bucketlists/?q=Cities', headers=dict(
+        rv = self.app.get('/api/v1/bucketlists/?q=Cities', headers=dict(
             Authorization=self.auth_token
         ))
         data = json.loads(rv.data.decode())
@@ -211,13 +207,13 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.put('/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')),
+        rv = self.app.put('/api/v1/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')),
                           headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist updated successfully')
 
     def test_authenticated_user_cannot_update_bucketlist_that_doesnt_exist(self):
-        rv = self.app.put('/bucketlists/'+ str(200), data=json.dumps(dict(newname='Work')),
+        rv = self.app.put('/api/v1/bucketlists/'+ str(200), data=json.dumps(dict(newname='Work')),
                           headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist doesnt exist')
@@ -228,7 +224,7 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.put('/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')),
+        rv = self.app.put('/api/v1/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')),
                           headers=dict(Authorization=None))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Invalid token, Login again')
@@ -239,7 +235,7 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.put('/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')))
+        rv = self.app.put('/api/v1/bucketlists/'+ str(bucketlistID), data=json.dumps(dict(newname='Work')))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Token not found, Login to get one')
 
@@ -249,12 +245,12 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.delete('/bucketlists/'+ str(bucketlistID), headers=dict(Authorization=self.auth_token))
+        rv = self.app.delete('/api/v1/bucketlists/'+ str(bucketlistID), headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist deleted successfully')
 
     def test_user_cannot_delete_bucketlist_that_doesnt_exist(self):
-        rv = self.app.delete('/bucketlists/'+ str(100), headers=dict(Authorization=self.auth_token))
+        rv = self.app.delete('/api/v1/bucketlists/'+ str(100), headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist doesnt exist')
 
@@ -264,7 +260,7 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.delete('/bucketlists/'+ str(bucketlistID), headers=dict(Authorization=None))
+        rv = self.app.delete('/api/v1/bucketlists/'+ str(bucketlistID), headers=dict(Authorization=None))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Invalid token, Login again')
 
@@ -274,7 +270,7 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.delete('/bucketlists/'+ str(bucketlistID))
+        rv = self.app.delete('/api/v1/bucketlists/'+ str(bucketlistID))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Token not found, Login to get one')
 
@@ -284,30 +280,29 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.post('/bucketlists/' + str(bucketlistID)+ '/items/', data=json.dumps(dict(
+        rv = self.app.post('/api/v1/bucketlists/' + str(bucketlistID)+ '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
+        ), headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
-        print(data['message'])
         self.assertEqual(data['message'], 'Bucketlist item added successfully')
-        rv = self.app.get('/bucketlists/'+ str(bucketlistID), headers=dict(
-            Authorization=self.auth_token
-        ))
-        data = json.loads(rv.data.decode())
+        # rv = self.app.get('/api/v1/bucketlists/'+ str(bucketlistID), headers=dict(
+        #     Authorization=self.auth_token
+        # ))
+        # data = json.loads(rv.data.decode())
         # print(data)
         # self.assertFalse(data['1'])
 
     def test_authenticated_user_cannot_add_item_to_bucketlist_that_doesnt_exist(self):
-        rv = self.app.post('/bucketlists/' + str(100) + '/items/', data=json.dumps(dict(
+        rv = self.app.post('/api/v1/bucketlists/' + str(100) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
+        ), headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         # print(data['message'])
-        self.assertEqual(data['message'], 'Bucketlist doesnt exist')
+        self.assertEqual(data['message'], "Bucketlist doesn't exist")
 
     def test_unauthenticated_user_cannot_add_item_to_bucketlist(self):
         bucketlist = Bucketlist(name='Water bodies')
@@ -315,11 +310,11 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.post('/bucketlists/' + str(bucketlistID) + '/items/', data=json.dumps(dict(
+        rv = self.app.post('/api/v1/bucketlists/' + str(bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=None))
+        ), headers=dict(Authorization=None))
         data = json.loads(rv.data.decode())
         # print(data['message'])
         self.assertEqual(data['message'], 'Invalid token, Login again')
@@ -330,113 +325,113 @@ class TestUserModel(unittest.TestCase):
         self.user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
         bucketlistID = bucketlist.id
-        rv = self.app.post('/bucketlists/' + str(bucketlistID) + '/items/', data=json.dumps(dict(
+        rv = self.app.post('/api/v1/bucketlists/' + str(bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )))
+        ))
         data = json.loads(rv.data.decode())
         # print(data['message'])
         self.assertEqual(data['message'], 'Token not found, Login to get one')
 
     def test_user_can_update_item_in_bucketlist(self):
-        self.app.post('/bucketlists/' + str(self.bucketlistID) + '/items/', data=json.dumps(dict(
+        self.app.post('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
-        rv = self.app.put('/bucketlists/' + str(self.bucketlistID) + '/items/1', data=json.dumps(dict(
+        ), headers=dict(Authorization=self.auth_token))
+        rv = self.app.put('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/1', data=dict(
             title='Pacific Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
+        ), headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist item updated successfully')
 
     def test_user_cannot_update_item_in_bucketlist_that_doesnt_exist(self):
-        self.app.post('/bucketlists/' + str(self.bucketlistID) + '/items/', data=json.dumps(dict(
+        self.app.post('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
-        rv = self.app.put('/bucketlists/' + str(100) + '/items/1', data=json.dumps(dict(
+        ), headers=dict(Authorization=self.auth_token))
+        rv = self.app.put('/api/v1/bucketlists/' + str(100) + '/items/1', data=dict(
             title='Pacific Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
+        ), headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist item doesnt exist')
 
     def test_unauthenticated_user_cannot_update_item_in_bucketlist(self):
-        self.app.post('/bucketlists/' + str(self.bucketlistID) + '/items/', data=json.dumps(dict(
+        self.app.post('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
-        rv = self.app.put('/bucketlists/' + str(self.bucketlistID) + '/items/1', data=json.dumps(dict(
+        ), headers=dict(Authorization=self.auth_token))
+        rv = self.app.put('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/1', data=dict(
             title='Pacific Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=None))
+        ), headers=dict(Authorization=None))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Invalid token, Login again')
 
     def test_user_cannot_update_item_in_bucketlist_without_token(self):
-        self.app.post('/bucketlists/' + str(self.bucketlistID) + '/items/', data=json.dumps(dict(
+        self.app.post('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
-        rv = self.app.put('/bucketlists/' + str(self.bucketlistID) + '/items/1', data=json.dumps(dict(
+        ), headers=dict(Authorization=self.auth_token))
+        rv = self.app.put('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/1', data=dict(
             title='Pacific Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )))
+        ))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Token not found, Login to get one')
 
     def test_user_can_delete_item_in_bucketlist(self):
-        self.app.post('/bucketlists/' + str(self.bucketlistID) + '/items/', data=json.dumps(dict(
+        self.app.post('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
-        rv = self.app.delete('/bucketlists/' + str(self.bucketlistID) + '/items/1',
+        ), headers=dict(Authorization=self.auth_token))
+        rv = self.app.delete('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/1',
                              headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist item deleted successfully')
 
     def test_user_cannot_delete_item_in_bucketlist_that_doesnt_exist(self):
-        self.app.post('/bucketlists/' + str(self.bucketlistID) + '/items/', data=json.dumps(dict(
+        self.app.post('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
-        rv = self.app.put('/bucketlists/' + str(100) + '/items/1', data=json.dumps(dict(
+        ), headers=dict(Authorization=self.auth_token))
+        rv = self.app.put('/api/v1/bucketlists/' + str(100) + '/items/1', data=dict(
             title='Pacific Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
+        ), headers=dict(Authorization=self.auth_token))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Bucketlist item doesnt exist')
 
     def test_unauthenticated_user_cannot_delete_item_in_bucketlist(self):
-        self.app.post('/bucketlists/' + str(self.bucketlistID) + '/items/', data=json.dumps(dict(
+        self.app.post('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
-        rv = self.app.delete('/bucketlists/' + str(self.bucketlistID) + '/items/1', headers=dict(Authorization=None))
+        ), headers=dict(Authorization=self.auth_token))
+        rv = self.app.delete('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/1', headers=dict(Authorization=None))
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Invalid token, Login again')
 
     def test_user_cannot_delete_item_in_bucketlist_without_token(self):
-        self.app.post('/bucketlists/' + str(self.bucketlistID) + '/items/', data=json.dumps(dict(
+        self.app.post('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/', data=dict(
             title='Indian Ocean',
             deadline='13/11/1994',
             status='Incomplete'
-        )), headers=dict(Authorization=self.auth_token))
-        rv = self.app.delete('/bucketlists/' + str(self.bucketlistID) + '/items/1')
+        ), headers=dict(Authorization=self.auth_token))
+        rv = self.app.delete('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/1')
         data = json.loads(rv.data.decode())
         self.assertEqual(data['message'], 'Token not found, Login to get one')
 
