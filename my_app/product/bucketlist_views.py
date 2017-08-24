@@ -332,7 +332,7 @@ def view_one_bucketlist(bucketlistID):
                 if bucketlist:
                     search_result = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
                         filter(BucketlistItem.title.ilike('%'+search_name+'%'))
-                    if search_result:
+                    if search_result.count() > 0: # lenngth of a base query
                         res = {
                             bucketlistItem.id: bucketlistItem.title for bucketlistItem in search_result
                             }

@@ -17,12 +17,16 @@ class TestUserModel(unittest.TestCase):
         db.session.add(bucketlist)
         user.bucketlists.append(bucketlist)  # FK relationship
         db.session.commit()
-        # print('---------***************---------------------')
         self.bucketlistID = bucketlist.id
         self.auth_token = user.encode_auth_token(user.id)
         self.app = app.test_client()
         self.user = user
         return self.app, self.auth_token, self.user, self.bucketlistID
+
+    def test_error_handler(self):
+        rv1 = self.app.get('/api/v1/bucketlis/', headers=dict(Authorization=self.auth_token))
+        data1 = json.loads(rv1.data.decode())
+        self.assertEqual(data1['message'], 'The resource you have requested is not available')
 
     def test_whether_the_encode_auth_token_works(self):
         user = User.query.filter_by(email="testi@mail.com").first()
@@ -48,6 +52,11 @@ class TestUserModel(unittest.TestCase):
         rv = self.registration('ltum@gmail.com', '1234')
         data = json.loads(rv.data.decode())
         self.assertEqual('Registration Successful', data['message'])
+
+    def test_validation_of_email_during_registration(self):
+        rv = self.registration('ltum', '1234')
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Invalid email', data['message'])
 
     def test_register_user_that_already_exists_return_error_message(self):
         rv = self.registration('testi@mail.com', '1234')
@@ -147,7 +156,12 @@ class TestUserModel(unittest.TestCase):
     def test_user_can_add_bucketlist(self):
         rv = self.create_bucketlist('Oceans', self.auth_token)
         data = json.loads(rv.data.decode())
-        self.assertEqual('Oceans',data['bucketlist'])
+        self.assertEqual('Oceans', data['bucketlist'])
+
+    def test_user_cannot_add_bucketlist_without_name(self):
+        rv = self.create_bucketlist('', self.auth_token)
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Bucketlist item should have name', data['message'])
 
     def test_user_cannot_add_already_existing_bucketlist(self):
         rv = self.create_bucketlist('Cities', self.auth_token)
@@ -158,6 +172,11 @@ class TestUserModel(unittest.TestCase):
         rv = self.create_bucketlist('Cities', None)
         data = json.loads(rv.data.decode())
         self.assertEqual('Invalid token, Login again',data['message'])
+
+    def test_return_error_when_token_is_not_found(self):
+        rv = self.app.post('/api/v1/bucketlists/', data=dict(name='Work'), headers=dict())
+        data = json.loads(rv.data.decode())
+        self.assertEqual('Token not found, Login to get one',data['message'])
 
     def view_all_bucketlists(self, token):
         return self.app.get('/api/v1/bucketlists/', headers=dict(
@@ -185,6 +204,21 @@ class TestUserModel(unittest.TestCase):
         ))
         data = json.loads(rv.data.decode())
         self.assertEqual(1, len(data))
+
+    def test_search_and_pagination_of_bucketlist(self):
+        self.create_bucketlist('Oceans', self.auth_token)
+        self.create_bucketlist('Oceania', self.auth_token)
+        self.create_bucketlist('Octopie', self.auth_token)
+        rv = self.app.get('/api/v1/bucketlists/?q=Oc&limit=2', headers=dict(
+            Authorization=self.auth_token
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertEqual(len(data), 2)
+        rv = self.app.get('/api/v1/bucketlists/?q=Zanza&limit=3', headers=dict(
+            Authorization=self.auth_token
+        ))
+        data = json.loads(rv.data.decode())
+        self.assertEqual(data['message'], 'No result matches this search')
 
     def test_name_based_search_of_bucketlist(self):
         rv = self.app.get('/api/v1/bucketlists/?q=Cities', headers=dict(
@@ -333,6 +367,70 @@ class TestUserModel(unittest.TestCase):
         data = json.loads(rv.data.decode())
         # print(data['message'])
         self.assertEqual(data['message'], 'Token not found, Login to get one')
+
+    def test_authenticated_user_can_get_item_in_bucketlist(self):
+        bucketlist = Bucketlist(name='Water bodies')
+        db.session.add(bucketlist)
+        self.user.bucketlists.append(bucketlist)  # FK relationship
+        db.session.commit()
+        bucketlistID = bucketlist.id
+
+        rv1 = self.app.get('/api/v1/bucketlists/' + str(bucketlistID), headers=dict(Authorization=self.auth_token))
+        data1 = json.loads(rv1.data.decode())
+        self.assertEqual(data1['message'], 'No items in this bucketlist')
+        self.app.post('/api/v1/bucketlists/' + str(bucketlistID)+ '/items/', data=dict(
+            title='Indian Ocean',
+            deadline='13/11/1994',
+            status='Incomplete'
+        ), headers=dict(Authorization=self.auth_token))
+        rv2 = self.app.get('/api/v1/bucketlists/' + str(bucketlistID), headers=dict(Authorization=self.auth_token))
+        data2 = json.loads(rv2.data.decode())
+        self.assertEqual(data2['1'], 'Indian Ocean')
+
+    def test_authenticated_user_can_get_search_and_paginate_items_in_bucketlist(self):
+        bucketlist = Bucketlist(name='Water bodies')
+        db.session.add(bucketlist)
+        self.user.bucketlists.append(bucketlist)  # FK relationship
+        db.session.commit()
+        bucketlistID = bucketlist.id
+        rv1 = self.app.get('/api/v1/bucketlists/' + str(bucketlistID) + '?limit=2',
+                           headers=dict(Authorization=self.auth_token))
+        data = json.loads(rv1.data.decode())
+        self.assertEqual(data['message'], 'No items in this bucketlist')
+        self.app.post('/api/v1/bucketlists/' + str(bucketlistID)+ '/items/', data=dict(
+            title='Indian Ocean',
+            deadline='13/11/1994',
+            status='Incomplete'
+        ), headers=dict(Authorization=self.auth_token))
+        self.app.post('/api/v1/bucketlists/' + str(bucketlistID) + '/items/', data=dict(
+            title='Pacific Ocean',
+            deadline='13/11/1994',
+            status='Incomplete'
+        ), headers=dict(Authorization=self.auth_token))
+        self.app.post('/api/v1/bucketlists/' + str(bucketlistID) + '/items/', data=dict(
+            title='Atlantic Ocean',
+            deadline='13/11/1994',
+            status='Incomplete'
+        ), headers=dict(Authorization=self.auth_token))
+        rv1= self.app.get('/api/v1/bucketlists/' + str(bucketlistID) + '?q=Ocean',
+                           headers=dict(Authorization=self.auth_token))
+        data = json.loads(rv1.data.decode())
+        self.assertEqual(len(data), 3)
+        rv1 = self.app.get('/api/v1/bucketlists/' + str(bucketlistID) + '?limit=2',
+                           headers=dict(Authorization=self.auth_token))
+        data = json.loads(rv1.data.decode())
+        self.assertEqual(len(data), 2)
+        rv2 = self.app.get('/api/v1/bucketlists/' + str(bucketlistID) + '?q=Zanzi',
+                           headers=dict(Authorization=self.auth_token))
+        data2 = json.loads(rv2.data.decode())
+        print(data2)
+        self.assertEqual(data2['message'], 'Bucketlist not found')
+        rv3 = self.app.get('/api/v1/bucketlists/' + str(bucketlistID) + '?q=Ocean&limit=2', headers=dict(Authorization=self.auth_token))
+        data3 = json.loads(rv3.data.decode())
+        self.assertEqual(len(data3), 2)
+        rv2 = self.app.get('/api/v1/bucketlists/' + str(bucketlistID) + '?q=Zanzi&limit=2', headers=dict(Authorization=self.auth_token))
+        data4 = json.loads(rv2.data.decode())
+        self.assertEqual(data4['message'], 'No result matches this search')
 
     def test_user_can_update_item_in_bucketlist(self):
         self.app.post('/api/v1/bucketlists/' + str(self.bucketlistID) + '/items/', data=dict(
