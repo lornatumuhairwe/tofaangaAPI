@@ -32,16 +32,16 @@ Check the requirements.txt file
 | [ GET /bucketlists?q=\<bucketlist_name> ](#) | Search for bucket list with the same name as that passed in bucketlist_name |
 
 
-###How to us the application
+### How to use the application
 Clone the repository and the install the dependencies
 
-###Install requirements
-pip install -r requirements.txt
+### Install requirements
+pip3 install -r requirements.txt
 
 ### Run app
 python3 run.py
 
-###Test app
+### Test app
 python3 -m unittest
 coverage run -m unittest
 
