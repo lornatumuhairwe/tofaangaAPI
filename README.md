@@ -10,6 +10,7 @@
 The name of this application is based on a Luganda word TOFAANGA' that means DON'T DIE BEFORE ...
 It is a simple bucketlist application that helps users to track their goals by allowing a logged in user to create
 bucketlists, add items to the different buckets, view the items in the bucketlists and also be able to delete the bucketlists.
+You can interact with the API via the documentation on heroku [here.](http://tofaangapi.herokuapp.com/apidocs)
 
 ### Prerequisites
 Check the requirements.txt file
@@ -35,14 +36,26 @@ Check the requirements.txt file
 ### How to use the application
 Clone the repository and the install the dependencies
 
-### Install requirements
+#### Install dependencies/requirements
 pip3 install -r requirements.txt
 
 ### Run app
 python3 run.py
 
 ### Test app
-python3 -m unittest
+python3 -m unittest or
 coverage run -m unittest
 
+### Database operations
+###### Create database
+1. Open terminal in the root of the folder
+2. Run: from my_app import db
+3. db.create_all()
+4. To drop all the tables in your db, run: db.drop_all()
+
+###### Run migrations
+1. On the first run, run: python manage.py db init, This creates a migrations folder in the project.
+This command must only be run once.
+2. Then run: python3 manage.py db migrate, on to integrate database changes
+.
 
