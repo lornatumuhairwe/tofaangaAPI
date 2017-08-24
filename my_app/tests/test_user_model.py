@@ -1,7 +1,7 @@
 from .test_base import TestBase
 import json
-from my_app.product.models import User, Bucketlist
-from my_app import db, app, bcrypt
+from my_app.product.models import User
+from my_app import db
 
 
 class TestUserModel(TestBase):

@@ -1,7 +1,7 @@
 from .test_base import TestBase
 import json, flask
-from my_app.product.models import User, Bucketlist
-from my_app import db, app, bcrypt
+from my_app.product.models import Bucketlist
+from my_app import db, app
 
 
 class TestBucketlistModel(TestBase):
