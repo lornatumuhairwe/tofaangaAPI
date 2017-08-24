@@ -149,7 +149,8 @@ def update_item_in_bucketlist(bucketlistID, BLitemID):
         if auth_token:
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, int):
-                bucketlist_item = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).filter_by(id=BLitemID).first()
+                bucketlist_item = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
+                    filter_by(id=BLitemID).first()
                 # bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
                 if bucketlist_item:
                     bucketlist_item.title = title

@@ -294,7 +294,8 @@ def view_one_bucketlist(bucketlistID):
                 bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
                 if bucketlist:
                     result =  BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
-                        filter(BucketlistItem.title.ilike('%'+search_name+'%')).paginate(page=1, per_page=int(limit)).items
+                        filter(BucketlistItem.title.ilike('%'+search_name+'%')).paginate(page=1, per_page=int(limit)).\
+                        items
                     if len(result) > 0:
                         res = {
                             bucketlistItem.id: bucketlistItem.title for bucketlistItem in result

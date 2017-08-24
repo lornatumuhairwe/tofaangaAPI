@@ -4,7 +4,6 @@ from my_app import bcrypt
 from my_app.product.models import User, BlacklistToken
 import re
 
-# swagger = Swagger(app)
 catalog = Blueprint('catalog', __name__, url_prefix='/api/v1')
 authentication = Blueprint('authentication', __name__, url_prefix='/api/v1')
 
@@ -12,6 +11,7 @@ authentication = Blueprint('authentication', __name__, url_prefix='/api/v1')
 @catalog.route('/')
 def home():
     return render_template('index.html')
+
 
 @app.errorhandler(404)
 def page_not_found(e):
