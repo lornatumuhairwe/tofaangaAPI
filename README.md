@@ -30,3 +30,19 @@ Check the requirements.txt file
 | [ DELETE /bucketlists/\<id>/items/<item_id> ](#) | Delete an item in a bucket list |
 | [ GET /bucketlists?limit=\<number> ](#) | Gets a number of bucket lists relative to the value passed in number. Maximum records is 100 |
 | [ GET /bucketlists?q=\<bucketlist_name> ](#) | Search for bucket list with the same name as that passed in bucketlist_name |
+
+
+###How to us the application
+Clone the repository and the install the dependencies
+
+###Install requirements
+pip install -r requirements.txt
+
+### Run app
+python3 run.py
+
+###Test app
+python3 -m unittest
+coverage run -m unittest
+
+
