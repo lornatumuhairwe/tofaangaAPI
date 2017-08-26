@@ -10,7 +10,7 @@ bcrypt = Bcrypt(app)
 from flask_cors import CORS, cross_origin
 from flasgger import Swagger
 
-from my_app.product.views import catalog, authentication
+from my_app.product.authentication_views import catalog, authentication
 from my_app.product.bucketlist_views import bucketlist
 from my_app.product.bucketlistitems_views import bucketlistitems
 app.register_blueprint(catalog)
