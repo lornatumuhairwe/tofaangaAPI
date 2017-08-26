@@ -42,7 +42,7 @@ def add_item_to_bucketlist(bucketlistID):
                   required: true
                   type: "string"
                 responses:
-                    200:
+                    201:
                       description: "Bucketlist item added Successfully"
                     400:
                       description: "Bucketlist item addition Failed. Bad request, use appropriate parameters"
@@ -72,7 +72,7 @@ def add_item_to_bucketlist(bucketlistID):
                         'message': 'Bucketlist item added successfully',
                         'buckelist Item': bucketlist_item.title
                     }
-                    return jsonify(res), 200
+                    return jsonify(res), 201
                 else:
                     res = {
                         'message': "Bucketlist doesn't exist"
@@ -134,7 +134,7 @@ def update_item_in_bucketlist(bucketlistID, BLitemID):
                   required: true
                   type: "string"
                 responses:
-                    200:
+                    201:
                       description: "Bucketlist item updated Successfully"
                     400:
                       description: "Bucketlist item update Failed. Bad request, use appropriate parameters"
@@ -163,7 +163,7 @@ def update_item_in_bucketlist(bucketlistID, BLitemID):
                         'status': bucketlist_item.status,
                         'message': 'Bucketlist item updated successfully'
                     }
-                    return jsonify(res), 200
+                    return jsonify(res), 201
                 else:
                     res = {
                         'message': 'Bucketlist item doesnt exist'

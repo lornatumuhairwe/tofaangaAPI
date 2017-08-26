@@ -27,7 +27,7 @@ def add_bucketlist():
               required: true
               type: "string"
             responses:
-                200:
+                201:
                   description: "Bucketlist Added Successfully"
                 400:
                   description: "Bucketlist Add Failed. Bad request, use appropriate parameters"
@@ -47,7 +47,6 @@ def add_bucketlist():
             if isinstance(resp, int):
                 user = User.query.filter_by(id=resp).first()
                 item = Bucketlist.query.filter(Bucketlist.owner_id==resp).filter_by(name=name).first()
-                #item = Bucketlist.query.filter_by(name=name).first()
                 if not item:
                     bucketlist = Bucketlist(name=name)
                     db.session.add(bucketlist)
@@ -57,7 +56,7 @@ def add_bucketlist():
                         'bucketlist': bucketlist.name,
                         'message': 'Bucketlist added successfully'
                     }
-                    return jsonify(res), 200
+                    return jsonify(res), 201
                 else:
                     res = {
                         'message': 'Bucketlist exists'
@@ -212,7 +211,7 @@ def update_bucketlist(bucketlistID):
               required: true
               type: "string"
             responses:
-                200:
+                201:
                   description: "Bucketlist updated Successfully"
                 400:
                   description: "Bucketlist update Failed. Bad request, use appropriate parameters"
@@ -234,7 +233,7 @@ def update_bucketlist(bucketlistID):
                         #bucketlist.id: bucketlist.name,
                         'message': 'Bucketlist updated successfully'
                     }
-                    return jsonify(res), 200
+                    return jsonify(res), 201
                 else:
                     res = {
                         'message': 'Bucketlist doesnt exist'

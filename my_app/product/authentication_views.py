@@ -52,7 +52,7 @@ def register():
               required: false
               type: "string"
             responses:
-                200:
+                201:
                   description: "Registration Successful"
                 400:
                   description: "Registration Failed. Bad request, use appropriate parameters"
@@ -93,7 +93,7 @@ def register():
             'message': 'Registration Successful'
         }
 
-        return jsonify(res), 200
+        return jsonify(res), 201
 
     else:
         res = {
@@ -194,7 +194,7 @@ def reset_password():
                   required: true
                   type: "string"
                 responses:
-                    200:
+                    201:
                       description: "Password reset Successful"
                     400:
                       description: "Password reset Failed. Bad request, use appropriate parameters"
@@ -226,7 +226,7 @@ def reset_password():
                 'password': user.password,
                 'message': 'Password reset successful'
             }
-            return jsonify(res), 200
+            return jsonify(res), 201
         else:
             res = {
                 'message': "Confirmed password doesn't match password"
