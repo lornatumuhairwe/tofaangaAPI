@@ -37,25 +37,25 @@ Check the requirements.txt file
 Clone the repository and the install the dependencies
 
 #### Install dependencies/requirements
-pip3 install -r requirements.txt
+```pip3 install -r requirements.txt```
 
 ### Run app
-python3 run.py
+```python3 run.py```
 
 ### Test app
-python3 -m unittest or
-coverage run -m unittest
+```python3 -m unittest``` or
+```coverage run -m unittest```
 
 ### Database operations
 ###### Create database
 1. Open terminal in the root of the folder
-2. Run: from my_app import db
-3. db.create_all()
-4. To drop all the tables in your db, run: db.drop_all()
+2. Run: ```from my_app import db```
+3. ```db.create_all()```
+4. To drop all the tables in your db, run: ```db.drop_all()```
 
 ###### Run migrations
-1. On the first run, run: python manage.py db init, This creates a migrations folder in the project.
+1. On the first run, run: ```python manage.py db init```, This creates a migrations folder in the project.
 This command must only be run once.
-2. Then run: python3 manage.py db migrate, on to integrate database changes
+2. Then run: ```python3 manage.py db migrate```, on to integrate database changes
 .
 
