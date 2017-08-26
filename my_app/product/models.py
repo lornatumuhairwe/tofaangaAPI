@@ -7,7 +7,7 @@ class User(db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255))
+    name = db.Column(db.String(50))
     birth_date = db.Column(db.String(10))
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(255))
@@ -24,6 +24,7 @@ class User(db.Model):
 
     def encode_auth_token(self, user_id):
         """Generate the Auth token, return: string"""
+        # import pdb; pdb.set_trace()
         try:
             payload = {
                 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=1000),
