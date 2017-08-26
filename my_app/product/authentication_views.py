@@ -82,6 +82,7 @@ def register():
         db.session.add(user)
         db.session.commit()
         auth_token = user.encode_auth_token(user.id)
+        # print(auth_token)
         res = {
             'user id': user.id,
             'name': user.name,
@@ -131,6 +132,7 @@ def login():
                """
     email = request.form.get('email')
     password = request.form.get('password')
+    # print (email)
     user = User.query.filter_by(email=email).first()
     if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
         res = {

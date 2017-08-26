@@ -1,4 +1,4 @@
-import unittest
+import unittest, json
 from my_app import db, app, bcrypt
 from my_app.product.models import User, Bucketlist
 
@@ -29,3 +29,5 @@ class TestBase(unittest.TestCase):
     def tearDown(self):
         db.session.close()
         db.drop_all()
+
+
