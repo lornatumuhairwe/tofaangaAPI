@@ -93,7 +93,7 @@ class TestUserAuth(TestBase):
         """ Ensure that user registration is unsuccessful when credentials are not consistent with database records """
         return_value = self.login('lt@gmail.com', 'testpasser')
         data = json.loads(return_value.data.decode())
-        assert 'User not found' in data['message']
+        self.assertEqual('User not found', data['message'])
 
     def test_login_with_incorrect_password(self):
         """ Ensure that user registration is unsuccessful when credentials are not consistent with database records """

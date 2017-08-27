@@ -100,7 +100,6 @@ def view_bucketlist(user_id):
     search_name = request.args.get('q', '')  # http://localhost:5000/bucketlists/?q=Oceania, implements this kind
     #  of search
     limit = request.args.get('limit', '')
-    auth_token = request.headers.get('Authorization')
     if limit and search_name:
         result = Bucketlist.query.filter(Bucketlist.name.ilike('%' + search_name + '%')). \
             filter_by(owner_id=user_id).paginate(page=1, per_page=int(limit)).items

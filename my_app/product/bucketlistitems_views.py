@@ -1,6 +1,6 @@
 from flask import request, jsonify, Blueprint
 from my_app import db
-from my_app.product.models import User, Bucketlist, BucketlistItem
+from my_app.product.models import Bucketlist, BucketlistItem
 from my_app.decorators import authenticate
 
 bucketlistitems = Blueprint('bucketlistitems', __name__, url_prefix='/api/v1')
@@ -130,7 +130,6 @@ def update_item_in_bucketlist(user_id, bucketlistID, BLitemID):
     title = request.form.get('title')
     deadline = request.form.get('deadline')
     status = request.form.get('status')
-    auth_token = request.headers.get('Authorization')
     bucketlist_item = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
         filter_by(id=BLitemID).first()
     # bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()

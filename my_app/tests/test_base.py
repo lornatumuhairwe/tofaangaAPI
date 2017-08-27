@@ -1,4 +1,4 @@
-import unittest, json
+import unittest
 from my_app import db, app, bcrypt
 from my_app.product.models import User, Bucketlist
 
