@@ -62,7 +62,8 @@ def add_bucketlist(user_id):
 
 
 @bucketlist.route('', methods=['GET'])
-def view_bucketlist():
+@authenticate
+def view_bucketlist(user_id):
     """ View bucketlists
             ---
             tags:
@@ -95,81 +96,68 @@ def view_bucketlist():
                 401:
                   description: "Bucketlist retrieval Failed. Invalid token, Login again or Token not found, Login to get one"
            """
+
     search_name = request.args.get('q', '')  # http://localhost:5000/bucketlists/?q=Oceania, implements this kind
     #  of search
     limit = request.args.get('limit', '')
     auth_token = request.headers.get('Authorization')
-    if auth_token:
-        resp = User.decode_auth_token(auth_token)
-        if isinstance(resp, int) and limit and search_name:
-            result = Bucketlist.query.filter(Bucketlist.name.ilike('%'+search_name+'%')).\
-                filter_by(owner_id=resp).paginate(page=1, per_page=int(limit)).items
-            if len(result) > 0:
-                res = {
-                    bucketlist.id: bucketlist.name for bucketlist in result
-                }
-                return jsonify(res), 200
-            else:
-                res = {
-                    'message': 'No result matches this search'
-                }
-                return jsonify(res), 200
-
-        elif isinstance(resp, int) and limit:
-            limit_result = Bucketlist.query.filter_by(owner_id=resp).paginate(page=1, per_page=int(limit)).items
-            if len(limit_result) > 0:
-                res = {
-                    bucketlist.id: bucketlist.name for bucketlist in limit_result
-                }
-                return jsonify(res), 200
-            else:
-                res = {
-                    'message': 'No bucketlists yet.'
-                    }
-                return jsonify(res), 200
-
-        elif isinstance(resp, int) and search_name:
-            search_result = Bucketlist.query.filter(Bucketlist.name.ilike('%'+search_name+'%')).\
-                filter_by(owner_id=resp).all()
-            if search_result:
-                res = {
-                    bucketlist.id: bucketlist.name for bucketlist in search_result
-                    }
-                return jsonify(res), 200
-            else:
-                res = {
-                    'message': 'Bucketlist not found'
-                }
-                return jsonify(res), 200
-
-        elif isinstance(resp, int):
-            if len(Bucketlist.query.filter_by(owner_id=resp).all()) > 0:
-                res = {
-                    bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.filter_by(owner_id=resp).all()
-                }
-                return jsonify(res), 200
-            else:
-                res = {
-                    'message': 'No bucketlists yet.'
-                }
-                return jsonify(res), 200
-
+    if limit and search_name:
+        result = Bucketlist.query.filter(Bucketlist.name.ilike('%' + search_name + '%')). \
+            filter_by(owner_id=user_id).paginate(page=1, per_page=int(limit)).items
+        if len(result) > 0:
+            res = {
+                bucketlist.id: bucketlist.name for bucketlist in result
+            }
+            return jsonify(res), 200
         else:
             res = {
-                'status': 'fail',
-                'message': 'Invalid token, Login again'
+                'message': 'No result matches this search'
             }
-            return jsonify(res), 401
+            return jsonify(res), 200
+
+    elif limit:
+        limit_result = Bucketlist.query.filter_by(owner_id=user_id).paginate(page=1, per_page=int(limit)).items
+        if len(limit_result) > 0:
+            res = {
+                bucketlist.id: bucketlist.name for bucketlist in limit_result
+            }
+            return jsonify(res), 200
+        else:
+            res = {
+                'message': 'No bucketlists yet.'
+            }
+            return jsonify(res), 200
+
+    elif search_name:
+        search_result = Bucketlist.query.filter(Bucketlist.name.ilike('%' + search_name + '%')). \
+            filter_by(owner_id=user_id).all()
+        if search_result:
+            res = {
+                bucketlist.id: bucketlist.name for bucketlist in search_result
+            }
+            return jsonify(res), 200
+        else:
+            res = {
+                'message': 'Bucketlist not found'
+            }
+            return jsonify(res), 200
+
     else:
-        res = {
-            'status': 'fail',
-            'message': 'Token not found, Login to get one'
-        }
-        return jsonify(res), 401
+        if len(Bucketlist.query.filter_by(owner_id=user_id).all()) > 0:
+            res = {
+                bucketlist.id: bucketlist.name for bucketlist in Bucketlist.query.filter_by(owner_id=user_id).all()
+            }
+            return jsonify(res), 200
+        else:
+            res = {
+                'message': 'No bucketlists yet.'
+            }
+            return jsonify(res), 200
 
 
 @bucketlist.route('<int:bucketlistID>', methods=['PUT'])
-def update_bucketlist(bucketlistID):
+@authenticate
+def update_bucketlist(user_id, bucketlistID):
     """ Update bucketlist
             ---
             tags:
@@ -205,39 +193,25 @@ def update_bucketlist(bucketlistID):
         #res = {'message': 'Update Function!'}
     newname = request.form.get('newname')
     auth_token = request.headers.get('Authorization')
-    if auth_token:
-        resp = User.decode_auth_token(auth_token)
-        if isinstance(resp, int):
-            bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
-            if bucketlist:
-                bucketlist.name = newname
-                db.session.commit()
-                res = {
-                    #bucketlist.id: bucketlist.name,
-                    'message': 'Bucketlist updated successfully'
-                }
-                return jsonify(res), 201
-            else:
-                res = {
-                    'message': 'Bucketlist doesnt exist'
-                }
-                return jsonify(res), 400
-        else:
-            res = {
-                'status': 'fail',
-                'message': 'Invalid token, Login again'
-            }
-            return jsonify(res), 401
+    bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == user_id).filter_by(id=bucketlistID).first()
+    if bucketlist:
+        bucketlist.name = newname
+        db.session.commit()
+        res = {
+            #bucketlist.id: bucketlist.name,
+            'message': 'Bucketlist updated successfully'
+        }
+        return jsonify(res), 201
     else:
         res = {
-            'status': 'fail',
-            'message': 'Token not found, Login to get one'
+            'message': 'Bucketlist doesnt exist'
         }
-        return jsonify(res), 401
+        return jsonify(res), 400
 
 
 @bucketlist.route('<int:bucketlistID>', methods=['GET'])
-def view_one_bucketlist(bucketlistID):
+@authenticate
+def view_one_bucketlist(user_id, bucketlistID):
     """ View bucketlist
             ---
             tags:
@@ -269,101 +243,88 @@ def view_one_bucketlist(bucketlistID):
     auth_token = request.headers.get('Authorization')
     search_name = request.args.get('q', '')  # http://localhost:5000/bucketlists/1?q=Oceania
     limit = request.args.get('limit', '')
-    if auth_token:
-        resp = User.decode_auth_token(auth_token)
-        if isinstance(resp, int) and limit and search_name:
-            bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
-            if bucketlist:
-                result =  BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
-                    filter(BucketlistItem.title.ilike('%'+search_name+'%')).paginate(page=1, per_page=int(limit)).\
-                    items
-                if len(result) > 0:
-                    res = {
-                        bucketlistItem.id: bucketlistItem.title for bucketlistItem in result
-                    }
-                    return jsonify(res), 200
-                else:
-                    res = {
-                        'message': 'No result matches this search'
-                    }
-                    return jsonify(res), 200
-        elif isinstance(resp, int) and limit:
-            bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
-            if bucketlist:
-                limit_result = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
-                    paginate(page=1, per_page=int(limit)).items
-                if len(limit_result) > 0:
-                    res = {
-                        bucketlistItem.id: bucketlistItem.title for bucketlistItem in limit_result
-                    }
-                    return jsonify(res), 200
-                else:
-                    res = {
-                        'message': 'No items in this bucketlist'
-                    }
-                    return jsonify(res), 200
-            else:
+    if limit and search_name:
+        bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == user_id).filter_by(id=bucketlistID).first()
+        if bucketlist:
+            result =  BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
+                filter(BucketlistItem.title.ilike('%'+search_name+'%')).paginate(page=1, per_page=int(limit)).\
+                items
+            if len(result) > 0:
                 res = {
-                    'message': "Bucketlist doesn't exist"
+                    bucketlistItem.id: bucketlistItem.title for bucketlistItem in result
                 }
                 return jsonify(res), 200
-        elif isinstance(resp, int) and search_name:
-            # search_result = Bucketlist.query.filter(Bucketlist.name.match('%'+search_name+'%')).\
-            #     filter_by(owner_id=resp).all()
-            bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
-            if bucketlist:
-                search_result = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
-                    filter(BucketlistItem.title.ilike('%'+search_name+'%'))
-                if search_result.count() > 0: # lenngth of a base query
-                    res = {
-                        bucketlistItem.id: bucketlistItem.title for bucketlistItem in search_result
-                        }
-                    return jsonify(res), 200
-                else:
-                    res = {
-                        'message': 'Bucketlist not found'
-                    }
-                    return jsonify(res), 200
             else:
                 res = {
-                    'message': 'Bucketlist doesnt exist'
+                    'message': 'No result matches this search'
                 }
-                return jsonify(res), 400
-        elif isinstance(resp, int):
-            bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
-            bucketlistItems = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).all()
-            if bucketlist:
-                if len(bucketlistItems)>0:
-                    res = {
-                        bucketlistItem.id: bucketlistItem.title for bucketlistItem in bucketlistItems
-                    }
-                    return jsonify(res), 200
-                else:
-                    res = {
-                        'message': 'No items in this bucketlist'
-                    }
-                    return jsonify(res), 200
+                return jsonify(res), 200
+    elif limit:
+        bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == user_id).filter_by(id=bucketlistID).first()
+        if bucketlist:
+            limit_result = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
+                paginate(page=1, per_page=int(limit)).items
+            if len(limit_result) > 0:
+                res = {
+                    bucketlistItem.id: bucketlistItem.title for bucketlistItem in limit_result
+                }
+                return jsonify(res), 200
             else:
                 res = {
-                    'message': 'Bucketlist doesnt exist'
+                    'message': 'No items in this bucketlist'
                 }
-                return jsonify(res), 400
+                return jsonify(res), 200
         else:
             res = {
-                'status': 'fail',
-                'message': 'Invalid token, Login again'
+                'message': "Bucketlist doesn't exist"
             }
-            return jsonify(res), 401
+            return jsonify(res), 200
+    elif search_name:
+        # search_result = Bucketlist.query.filter(Bucketlist.name.match('%'+search_name+'%')).\
+        #     filter_by(owner_id=resp).all()
+        bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == user_id).filter_by(id=bucketlistID).first()
+        if bucketlist:
+            search_result = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
+                filter(BucketlistItem.title.ilike('%'+search_name+'%'))
+            if search_result.count() > 0: # lenngth of a base query
+                res = {
+                    bucketlistItem.id: bucketlistItem.title for bucketlistItem in search_result
+                    }
+                return jsonify(res), 200
+            else:
+                res = {
+                    'message': 'Bucketlist not found'
+                }
+                return jsonify(res), 200
+        else:
+            res = {
+                'message': 'Bucketlist doesnt exist'
+            }
+            return jsonify(res), 400
     else:
-        res = {
-            'status': 'fail',
-            'message': 'Token not found, Login to get one'
-        }
-        return jsonify(res), 401
+        bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == user_id).filter_by(id=bucketlistID).first()
+        bucketlistItems = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).all()
+        if bucketlist:
+            if len(bucketlistItems)>0:
+                res = {
+                    bucketlistItem.id: bucketlistItem.title for bucketlistItem in bucketlistItems
+                }
+                return jsonify(res), 200
+            else:
+                res = {
+                    'message': 'No items in this bucketlist'
+                }
+                return jsonify(res), 200
+        else:
+            res = {
+                'message': 'Bucketlist doesnt exist'
+            }
+            return jsonify(res), 400
 
 
 @bucketlist.route('<int:bucketlistID>', methods=['DELETE'])
-def delete_bucketlist(bucketlistID):
+@authenticate
+def delete_bucketlist(user_id, bucketlistID):
     """ Delete bucketlist
             ---
             tags:
@@ -391,32 +352,16 @@ def delete_bucketlist(bucketlistID):
                 401:
                   description: "Delete Failed. Invalid token, Login again or Token not found, Login to get one"
            """
-    auth_token = request.headers.get('Authorization')
-    if auth_token:
-        resp = User.decode_auth_token(auth_token)
-        if isinstance(resp, int):
-            bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
-            if bucketlist:
-                db.session.delete(bucketlist)
-                db.session.commit()
-                res = {
-                    'message': 'Bucketlist deleted successfully'
-                }
-                return jsonify(res), 200
-            else:
-                res = {
-                    'message': 'Bucketlist doesnt exist'
-                }
-                return jsonify(res), 400
-        else:
-            res = {
-                'status': 'fail',
-                'message': 'Invalid token, Login again'
-            }
-            return jsonify(res), 401
+    bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == user_id).filter_by(id=bucketlistID).first()
+    if bucketlist:
+        db.session.delete(bucketlist)
+        db.session.commit()
+        res = {
+            'message': 'Bucketlist deleted successfully'
+        }
+        return jsonify(res), 200
     else:
         res = {
-            'status': 'fail',
-            'message': 'Token not found, Login to get one'
+            'message': 'Bucketlist doesnt exist'
         }
-        return jsonify(res), 401
+        return jsonify(res), 400
