@@ -1,7 +1,8 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint, url_for
 from my_app import db
 from my_app.product.models import User, Bucketlist, BucketlistItem
 from my_app.decorators import authenticate
+
 
 bucketlist = Blueprint('bucketlist', __name__, url_prefix='/api/v1/bucketlists/')
 
@@ -62,8 +63,9 @@ def add_bucketlist(user_id):
 
 
 @bucketlist.route('', methods=['GET'])
+@bucketlist.route('page/<int:page>', methods=['GET'])
 @authenticate
-def view_bucketlist(user_id):
+def view_bucketlist(user_id, page=1):
     """ View bucketlists
             ---
             tags:
@@ -88,6 +90,11 @@ def view_bucketlist(user_id):
               description: "The maximum number of bucketlists that a user would like to return"
               required: false
               type: "integer"
+            - name: page
+              in: "query"
+              description: "The page number the user wants to view"
+              required: false
+              type: "string"
             responses:
                 200:
                   description: "Bucketlist retrieved Successfully"
@@ -99,26 +106,68 @@ def view_bucketlist(user_id):
 
     search_name = request.args.get('q', '')  # http://localhost:5000/bucketlists/?q=Oceania, implements this kind
     #  of search
-    limit = request.args.get('limit', '')
+    limit = request.args.get('limit', 4)
+    # page = request.args.get('page', 1)
+
     if limit and search_name:
         result = Bucketlist.query.filter(Bucketlist.name.ilike('%' + search_name + '%')). \
-            filter_by(owner_id=user_id).paginate(page=1, per_page=int(limit)).items
-        if len(result) > 0:
+            filter_by(owner_id=user_id).paginate(page, per_page=int(limit))
+        result_list = result.items
+        if len(result_list) > 0:
+            pages = {'page': page, 'per_page': result.per_page, 'total': result.total, 'pages': result.pages}
+            if result.has_prev:
+                pages['prev_url'] = url_for(request.endpoint, page=result.prev_num, limit=int(limit))
+            # else:
+            #     pages['prev_url'] = None
+            if result.has_next:
+                pages['next_url'] =  url_for( request.endpoint, page=result.next_num, limit=int(limit), q=search_name)
+            # else:
+            #     pages['next_url'] = None
+            # pages['first_url'] = url_for(request.endpoint, page=1,
+            #                              per_page=per_page, expanded=expanded,
+            #                              _external=True, **kwargs)
+            # pages['last_url'] = url_for(request.endpoint, page=p.pages,
+            #                             per_page=per_page, expanded=expanded,
+            #                             _external=True, **kwargs)
             res = {
-                bucketlist.id: bucketlist.name for bucketlist in result
+                'bucketlists': {bucketlist.id: bucketlist.name for bucketlist in result_list},
+                'details': pages
+                # 'results': limit_result.__dict__
             }
             return jsonify(res), 200
         else:
             res = {
-                'message': 'No result matches this search'
+                'message': 'Bucketlist not found'
             }
             return jsonify(res), 200
 
     elif limit:
-        limit_result = Bucketlist.query.filter_by(owner_id=user_id).paginate(page=1, per_page=int(limit)).items
-        if len(limit_result) > 0:
+        limit_result = Bucketlist.query.filter_by(owner_id=user_id).order_by(Bucketlist.id.desc()).paginate(page, per_page=int(limit))
+        result_list = limit_result.items
+        # if page > 1:
+        #     limit_result = Bucketlist.query.filter_by(owner_id=user_id).limit(limit).offset((page-1)*limit)
+        # else:
+        #     limit_result = Bucketlist.query.filter_by(owner_id=user_id).paginate(page, per_page=int(limit)).items
+        if len(limit_result.items) > 0:
+            pages = {'page': page, 'per_page': limit_result.per_page, 'total': limit_result.total, 'pages': limit_result.pages}
+            if limit_result.has_prev:
+                pages['prev_url'] = url_for(request.endpoint, page=limit_result.prev_num, limit=int(limit))
+            # else:
+            #     pages['prev_url'] = None
+            if limit_result.has_next:
+                pages['next_url'] =  url_for( request.endpoint, page=limit_result.next_num, limit=int(limit))
+            # else:
+            #     pages['next_url'] = None
+            # pages['first_url'] = url_for(request.endpoint, page=1,
+            #                              per_page=per_page, expanded=expanded,
+            #                              _external=True, **kwargs)
+            # pages['last_url'] = url_for(request.endpoint, page=p.pages,
+            #                             per_page=per_page, expanded=expanded,
+            #                             _external=True, **kwargs)
             res = {
-                bucketlist.id: bucketlist.name for bucketlist in limit_result
+                'bucketlists': {bucketlist.id: bucketlist.name for bucketlist in result_list},
+                'details': pages
+                # 'results': limit_result.__dict__
             }
             return jsonify(res), 200
         else:
@@ -239,7 +288,6 @@ def view_one_bucketlist(user_id, bucketlistID):
                   description: "Get Items in Bucketlist failed. Invalid token, Login again or Token not found, Login to get one"
                """
     # name = request.form.get('name')
-    auth_token = request.headers.get('Authorization')
     search_name = request.args.get('q', '')  # http://localhost:5000/bucketlists/1?q=Oceania
     limit = request.args.get('limit', '')
     if limit and search_name:

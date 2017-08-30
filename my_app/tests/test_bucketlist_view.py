@@ -53,7 +53,7 @@ class TestBucketlistModel(TestBase):
         """Ensure that bucketlist can be viewed if user is authenticated"""
         return_value = self.view_all_bucketlists(self.auth_token)
         data = json.loads(return_value.data.decode())
-        self.assertEqual(data['1'], 'Cities')
+        self.assertEqual(data['bucketlists']['1'], 'Cities')
 
     def test_unauthenticated_user_cannot_view_bucketlist(self):
         """Ensure that bucketlist cannot be viewed if user is not authenticated"""
@@ -67,7 +67,7 @@ class TestBucketlistModel(TestBase):
             Authorization=self.auth_token
         ))
         data = json.loads(return_value.data.decode())
-        self.assertEqual(1, len(data))
+        self.assertEqual(1, len(data['bucketlists']))
 
     def test_search_and_pagination_of_bucketlist(self):
         """Ensure that the bucketlist viewed correspond to pagination or/and search"""
@@ -85,7 +85,7 @@ class TestBucketlistModel(TestBase):
             Authorization=self.auth_token
         ))
         data = json.loads(return_value.data.decode())
-        self.assertEqual(data['message'], 'No result matches this search')
+        self.assertEqual(data['message'], 'Bucketlist not found')
         # test for search when authentication is supplied and wrong search is provided
         return_value = self.app.get('/api/v1/bucketlists/?q=Zanza', headers=dict(
             Authorization=self.auth_token
@@ -99,7 +99,7 @@ class TestBucketlistModel(TestBase):
             Authorization=self.auth_token
         ))
         data = json.loads(return_value.data.decode())
-        self.assertTrue(data['1'])
+        self.assertTrue(data['bucketlists'])
 
     def test_authenticated_user_can_update_bucketlist(self):
         """Ensure that authenticated user can update bucketlist"""
