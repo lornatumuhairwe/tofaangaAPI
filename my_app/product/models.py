@@ -27,7 +27,7 @@ class User(db.Model):
         # import pdb; pdb.set_trace()
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=1000),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=100000),
                 'iat': datetime.datetime.utcnow(),
                 'sub': user_id
             }

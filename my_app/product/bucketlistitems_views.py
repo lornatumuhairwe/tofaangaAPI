@@ -60,7 +60,10 @@ def add_item_to_bucketlist(user_id, bucketlistID):
         }
         return jsonify(res), 400
     bucketlist = Bucketlist.query.filter(Bucketlist.owner_id==user_id).filter_by(id=bucketlistID).first()
-    if bucketlist:
+    bucketlistItem = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID). \
+        filter(BucketlistItem.title == title).first()
+    #print (bucketlistItem)
+    if bucketlist and not bucketlistItem:
         bucketlist_item = BucketlistItem(title, deadline,status)
         db.session.add(bucketlist_item)  # FK relationship
         bucketlist.items.append(bucketlist_item)
@@ -70,6 +73,11 @@ def add_item_to_bucketlist(user_id, bucketlistID):
             'buckelist Item': bucketlist_item.title
         }
         return jsonify(res), 201
+    elif bucketlistItem:
+        res = {
+            'message': "Bucketlist item with name exists"
+        }
+        return jsonify(res), 400
     else:
         res = {
             'message': "Bucketlist doesn't exist"
@@ -132,8 +140,15 @@ def update_item_in_bucketlist(user_id, bucketlistID, BLitemID):
     status = request.form.get('status')
     bucketlist_item = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
         filter_by(id=BLitemID).first()
+    bucketlistItem = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID). \
+        filter(BucketlistItem.title == title).first()
+    if not title:
+        res = {
+            'message': 'Bucketlist item has to have a title. Try again.'
+        }
+        return jsonify(res), 400
     # bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
-    if bucketlist_item:
+    elif bucketlist_item and not bucketlistItem:
         bucketlist_item.title = title
         bucketlist_item.deadline = deadline
         bucketlist_item.status = status
@@ -145,6 +160,11 @@ def update_item_in_bucketlist(user_id, bucketlistID, BLitemID):
             'message': 'Bucketlist item updated successfully'
         }
         return jsonify(res), 201
+    elif bucketlistItem:
+        res = {
+            'message': "Bucketlist item with name exists"
+        }
+        return jsonify(res), 400
     else:
         res = {
             'message': 'Bucketlist item doesnt exist'

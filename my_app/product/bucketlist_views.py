@@ -241,6 +241,12 @@ def update_bucketlist(user_id, bucketlistID):
         #res = {'message': 'Update Function!'}
     newname = request.form.get('newname')
     auth_token = request.headers.get('Authorization')
+    item = Bucketlist.query.filter(Bucketlist.owner_id == user_id).filter_by(name=newname).first()
+    if item:
+        res = {
+            'message': 'Bucketlist with name exists'
+        }
+        return jsonify(res), 400
     bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == user_id).filter_by(id=bucketlistID).first()
     if bucketlist:
         bucketlist.name = newname
@@ -354,7 +360,8 @@ def view_one_bucketlist(user_id, bucketlistID):
         if bucketlist:
             if len(bucketlistItems)>0:
                 res = {
-                    bucketlistItem.id: bucketlistItem.title for bucketlistItem in bucketlistItems
+                    bucketlistItem.id: [bucketlistItem.title, bucketlistItem.deadline, bucketlistItem.status] for
+                bucketlistItem in bucketlistItems
                 }
                 return jsonify(res), 200
             else:
