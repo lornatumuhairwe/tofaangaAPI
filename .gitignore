@@ -1,6 +1,5 @@
 .idea/
 *.pyc
-migrations/
 venv/
 __pycache__/
 coverage.xml

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TOFAANGA</title>
+    <link rel=stylesheet type=text/css href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h1>TOFAANGA API</h1>
+<p>The name of this application is based on a Luganda word TOFAANGA' that means DON'T DIE BEFORE ...
+It is a simple bucketlist application that helps users to track their goals by allowing a logged in user to create
+bucketlists, add items to the different buckets, view the items in the bucketlists and also be able to delete the bucketlists.</p>
+
+<h4><b>Prerequisites</b></h4>
+<p>Check the requirements.txt file</p>
+<p>The documentation of this API can be got <a href="http://tofaangapi.herokuapp.com/apidocs">here.</a>
+The github repository can be found <a href="http://github.com/lornatumuhairwe/tofaangaAPI">here.</a>
+</p>
+
+<h4><b>The routes catered for are listed in the table below</b></h4>
+<table class="table table-striped col-md-8">
+    <thead>
+    <tr>
+        <th>Endpoint</th>
+        <th>Functionality</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>POST /auth/login</td>
+        <td>Logs a user in</td>
+    </tr>
+    <tr>
+        <td>POST /auth/register</td>
+        <td>Register a user</td>
+    </tr>
+    <tr>
+        <td>POST /bucketlists/</td>
+        <td>Create a new bucket list</td>
+    </tr>
+    <tr>
+        <td>GET /bucketlists/</td>
+        <td>List all the created bucket lists</td>
+    </tr>
+    <tr>
+        <td>GET /bucketlists/?id</td>
+        <td>Get single bucket list</td>
+    </tr>
+    <tr>
+        <td>PUT /bucketlists/?id</td>
+        <td>Update this bucket list</td>
+    </tr>
+    <tr>
+        <td>DELETE /bucketlists/?id</td>
+        <td>Delete this single bucket list</td>
+    </tr>
+    <tr>
+        <td>POST /bucketlists/?id/items/</td>
+        <td>Create a new item in bucket list</td>
+    </tr>
+    <tr>
+        <td>PUT /bucketlists/?id/items/?item_id</td>
+        <td>Update a bucket list item</td>
+    </tr>
+    <tr>
+        <td>DELETE /bucketlists/?id/items/?item_id</td>
+        <td>Delete an item in a bucket list</td>
+    </tr>
+    <tr>
+        <td>DELETE /bucketlists/?id/items/?item_id</td>
+        <td>Delete an item in a bucket list</td>
+    </tr>
+    <tr>
+        <td>GET /bucketlists?limit=number</td>
+        <td>Gets a number of bucket lists relative to the value passed in number. Maximum records is 100</td>
+    </tr>
+    <tr>
+        <td>GET /bucketlists?q=bucketlist_name</td>
+        <td>Search for bucket list with the same name as that passed in bucketlist_name</td>
+    </tr>
+    </tbody>
+</table>
+</div>
+
+</body>
+</html>
