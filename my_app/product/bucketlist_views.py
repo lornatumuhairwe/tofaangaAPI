@@ -241,6 +241,11 @@ def update_bucketlist(user_id, bucketlistID):
         #res = {'message': 'Update Function!'}
     newname = request.form.get('newname')
     auth_token = request.headers.get('Authorization')
+    if not newname:
+        res = {
+            'message': 'Bucketlist has to have a name. Try again.'
+        }
+        return jsonify(res), 400
     item = Bucketlist.query.filter(Bucketlist.owner_id == user_id).filter_by(name=newname).first()
     if item:
         res = {

@@ -72,7 +72,7 @@ class Bucketlist(db.Model):
         self.name = name
 
     def __repr__(self):
-        return '<Bucketlist %r belongs>' % (self.name)
+        return (self.name)
 
 
 class BucketlistItem(db.Model):
@@ -90,7 +90,7 @@ class BucketlistItem(db.Model):
         self.status = status
 
     def __repr__(self):
-        return '<Item %r belongs to>' % (self.title)
+        return (self.title)
 
 
 class BlacklistToken(db.Model):

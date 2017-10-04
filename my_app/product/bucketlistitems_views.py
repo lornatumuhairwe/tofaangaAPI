@@ -141,14 +141,15 @@ def update_item_in_bucketlist(user_id, bucketlistID, BLitemID):
     bucketlist_item = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID).\
         filter_by(id=BLitemID).first()
     bucketlistItem = BucketlistItem.query.filter(BucketlistItem.bucketlist_id == bucketlistID). \
-        filter(BucketlistItem.title == title).first()
+        filter(BucketlistItem.title == title).filter(BucketlistItem.id != BLitemID).first()
+
     if not title:
         res = {
             'message': 'Bucketlist item has to have a title. Try again.'
         }
         return jsonify(res), 400
     # bucketlist = Bucketlist.query.filter(Bucketlist.owner_id == resp).filter_by(id=bucketlistID).first()
-    elif bucketlist_item and not bucketlistItem:
+    elif bucketlist_item and bucketlistItem is None:
         bucketlist_item.title = title
         bucketlist_item.deadline = deadline
         bucketlist_item.status = status
